@@ -5,10 +5,129 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+// --- ENUMS ---
+// Prisma maneja los enums nativos de Postgres
+enum Role {
+  ADMIN
+  CUSTOMER
+
+  @@map("user_role") // Nombre en base de datos
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+
+  @@map("order_status") // Nombre en base de datos
+}
+
+// --- MODELOS (TABLAS) ---
+
+model User {
+  id           String    @id @default(uuid()) // UUID v4
+  firstName    String    @map("first_name") @db.VarChar(100)
+  lastName     String    @map("last_name") @db.VarChar(100)
+  email        String    @unique @db.VarChar(255)
+  phone        String    @db.VarChar(20)
+  passwordHash String?   @map("password_hash") // Opcional (Google Login)
+  googleId     String?   @map("google_id")
+  role         Role      @default(CUSTOMER)
+  isActive     Boolean   @default(true) @map("is_active")
+  
+  // Timestamps
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at") // Soft Delete
+
+  // Relaciones
+  orders       Order[]
+
+  @@map("users") // Nombre real de la tabla en Postgres
+}
+
+model Category {
+  id          Int       @id @default(autoincrement()) // Serial
+  name        String    @db.VarChar(100)
+  slug        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relaciones
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String    @id @default(uuid())
+  categoryId    Int?      @map("category_id")
+  name          String    @db.VarChar(150)
+  slug          String    @unique @db.VarChar(150)
+  sku           String    @unique @db.VarChar(50)
+  description   String    @db.Text
+  price         Int       // Centavos (Integer)
+  stockQuantity Int       @default(0) @map("stock_quantity")
+  imageUrl      String?   @map("image_url")
+  isActive      Boolean   @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  // Relaciones
+  category      Category? @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  userId       String      @map("user_id")
+  status       OrderStatus @default(PENDING)
+  totalAmount  Int         @map("total_amount") // Centavos
+  
+  // Datos Logísticos (Manuales por Admin)
+  trackingCode String?     @map("tracking_code")
+  courierName  String?     @map("courier_name")
+  adminNotes   String?     @map("admin_notes") @db.Text
+
+  // Timestamps
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  deletedAt    DateTime?   @map("deleted_at")
+
+  // Relaciones
+  user         User        @relation(fields: [userId], references: [id])
+  items        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  productId String  @map("product_id")
+  quantity  Int
+  unitPrice Int     @map("unit_price") // Precio congelado al momento de compra
+
+  // Relaciones
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
 }

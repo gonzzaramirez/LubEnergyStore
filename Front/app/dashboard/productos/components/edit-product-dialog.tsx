@@ -119,7 +119,9 @@ export function EditProductDialog({
                 }}
               />
               {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -131,7 +133,9 @@ export function EditProductDialog({
                 {...register("slug", { required: "El slug es requerido" })}
               />
               {errors.slug && (
-                <p className="text-sm text-destructive">{errors.slug.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.slug.message}
+                </p>
               )}
             </div>
 
@@ -160,7 +164,10 @@ export function EditProductDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
                       {category.name}
                     </SelectItem>
                   ))}
@@ -181,7 +188,9 @@ export function EditProductDialog({
                 })}
               />
               {errors.price && (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.price.message}
+                </p>
               )}
             </div>
 
@@ -250,4 +259,3 @@ export function EditProductDialog({
     </Dialog>
   );
 }
-

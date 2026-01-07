@@ -72,4 +72,3 @@ export async function deleteCategory(id: number): Promise<void> {
     throw new Error("Error al eliminar la categoría");
   }
 }
-

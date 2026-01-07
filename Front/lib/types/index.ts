@@ -47,4 +47,3 @@ export interface CreateCategoryDto {
 }
 
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
-

@@ -119,4 +119,3 @@ export const getColumns = ({
     enableHiding: false,
   },
 ];
-

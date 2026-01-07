@@ -70,4 +70,3 @@ export async function deleteProduct(id: string): Promise<void> {
     throw new Error("Error al eliminar el producto");
   }
 }
-

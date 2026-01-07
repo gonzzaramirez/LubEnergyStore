@@ -89,7 +89,9 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
                 }}
               />
               {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -101,7 +103,9 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
                 {...register("slug", { required: "El slug es requerido" })}
               />
               {errors.slug && (
-                <p className="text-sm text-destructive">{errors.slug.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.slug.message}
+                </p>
               )}
             </div>
 
@@ -134,4 +138,3 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
     </Dialog>
   );
 }
-

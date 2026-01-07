@@ -100,7 +100,9 @@ export function EditCategoryDialog({
                 }}
               />
               {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -112,7 +114,9 @@ export function EditCategoryDialog({
                 {...register("slug", { required: "El slug es requerido" })}
               />
               {errors.slug && (
-                <p className="text-sm text-destructive">{errors.slug.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.slug.message}
+                </p>
               )}
             </div>
 
@@ -145,4 +149,3 @@ export function EditCategoryDialog({
     </Dialog>
   );
 }
-

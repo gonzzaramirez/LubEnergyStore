@@ -38,7 +38,6 @@ export function EditCategoryDialog({
     register,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
   } = useForm<UpdateCategoryDto>();
 
@@ -46,20 +45,10 @@ export function EditCategoryDialog({
     if (category) {
       reset({
         name: category.name,
-        slug: category.slug,
         description: category.description,
       });
     }
   }, [category, reset]);
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  };
 
   const onSubmit = async (data: UpdateCategoryDto) => {
     if (!category) return;
@@ -94,28 +83,10 @@ export function EditCategoryDialog({
                 id="edit-name"
                 placeholder="Nombre de la categoría"
                 {...register("name", { required: "El nombre es requerido" })}
-                onChange={(e) => {
-                  register("name").onChange(e);
-                  setValue("slug", generateSlug(e.target.value));
-                }}
               />
               {errors.name && (
                 <p className="text-sm text-destructive">
                   {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-slug">Slug *</Label>
-              <Input
-                id="edit-slug"
-                placeholder="slug-de-categoria"
-                {...register("slug", { required: "El slug es requerido" })}
-              />
-              {errors.slug && (
-                <p className="text-sm text-destructive">
-                  {errors.slug.message}
                 </p>
               )}
             </div>

@@ -57,7 +57,6 @@ model User {
 model Category {
   id          Int       @id @default(autoincrement()) // Serial
   name        String    @db.VarChar(100)
-  slug        String    @unique @db.VarChar(100)
   description String?   @db.Text
   
   // Timestamps

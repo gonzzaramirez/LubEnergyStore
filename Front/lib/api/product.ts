@@ -14,6 +14,18 @@ export async function getProducts(): Promise<Product[]> {
   return response.json();
 }
 
+export async function getDeletedProducts(): Promise<Product[]> {
+  const response = await fetch(`${API_URL}/products/deleted`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener productos eliminados");
+  }
+
+  return response.json();
+}
+
 export async function getProduct(id: string): Promise<Product> {
   const response = await fetch(`${API_URL}/products/${id}`, {
     cache: "no-store",
@@ -69,4 +81,19 @@ export async function deleteProduct(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error("Error al eliminar el producto");
   }
+}
+
+export async function restoreProduct(id: string): Promise<Product> {
+  const response = await fetch(`${API_URL}/products/${id}/restore`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al restaurar el producto");
+  }
+
+  return response.json();
 }

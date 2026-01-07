@@ -32,18 +32,8 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
     register,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
   } = useForm<CreateCategoryDto>();
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  };
 
   const onSubmit = async (data: CreateCategoryDto) => {
     try {
@@ -83,28 +73,10 @@ export function CreateCategoryDialog({ onSuccess }: CreateCategoryDialogProps) {
                 id="name"
                 placeholder="Nombre de la categoría"
                 {...register("name", { required: "El nombre es requerido" })}
-                onChange={(e) => {
-                  register("name").onChange(e);
-                  setValue("slug", generateSlug(e.target.value));
-                }}
               />
               {errors.name && (
                 <p className="text-sm text-destructive">
                   {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                placeholder="slug-de-categoria"
-                {...register("slug", { required: "El slug es requerido" })}
-              />
-              {errors.slug && (
-                <p className="text-sm text-destructive">
-                  {errors.slug.message}
                 </p>
               )}
             </div>

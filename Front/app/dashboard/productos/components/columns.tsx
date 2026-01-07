@@ -11,16 +11,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, RotateCcw } from "lucide-react";
 
 interface ColumnsProps {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onRestore?: (product: Product) => void;
 }
 
 export const getColumns = ({
   onEdit,
   onDelete,
+  onRestore,
 }: ColumnsProps): ColumnDef<Product>[] => [
   {
     id: "select",
@@ -145,17 +147,26 @@ export const getColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(product)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(product)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
+            {onRestore ? (
+              <DropdownMenuItem onClick={() => onRestore(product)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restaurar
+              </DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuItem onClick={() => onEdit(product)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDelete(product)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

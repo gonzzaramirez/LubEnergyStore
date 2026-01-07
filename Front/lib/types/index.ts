@@ -33,7 +33,6 @@ export interface UpdateProductDto extends Partial<CreateProductDto> {}
 export interface Category {
   id: number;
   name: string;
-  slug: string;
   description?: string;
   isActive?: boolean;
   createdAt?: string;
@@ -42,7 +41,6 @@ export interface Category {
 
 export interface CreateCategoryDto {
   name: string;
-  slug: string;
   description?: string;
 }
 

@@ -14,6 +14,18 @@ export async function getCategories(): Promise<Category[]> {
   return response.json();
 }
 
+export async function getDeletedCategories(): Promise<Category[]> {
+  const response = await fetch(`${API_URL}/categories/deleted`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener categorías eliminadas");
+  }
+
+  return response.json();
+}
+
 export async function getCategory(id: number): Promise<Category> {
   const response = await fetch(`${API_URL}/categories/${id}`, {
     cache: "no-store",
@@ -71,4 +83,19 @@ export async function deleteCategory(id: number): Promise<void> {
   if (!response.ok) {
     throw new Error("Error al eliminar la categoría");
   }
+}
+
+export async function restoreCategory(id: number): Promise<Category> {
+  const response = await fetch(`${API_URL}/categories/${id}/restore`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al restaurar la categoría");
+  }
+
+  return response.json();
 }

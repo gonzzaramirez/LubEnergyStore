@@ -6,7 +6,12 @@ import { getColumns } from "./components/columns";
 import { CreateProductDialog } from "./components/create-product-dialog";
 import { EditProductDialog } from "./components/edit-product-dialog";
 import { Product, Category } from "@/lib/types";
-import { getProducts, deleteProduct } from "@/lib/api/product";
+import {
+  getProducts,
+  getDeletedProducts,
+  deleteProduct,
+  restoreProduct,
+} from "@/lib/api/product";
 import { getCategories } from "@/lib/api/category";
 import { toast } from "sonner";
 import {
@@ -19,15 +24,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function ProductosPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [deletedProducts, setDeletedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDeleted, setIsLoadingDeleted] = useState(true);
+  const [activeTab, setActiveTab] = useState("activos");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [restoringProduct, setRestoringProduct] = useState<Product | null>(
+    null
+  );
 
   const fetchData = useCallback(async () => {
     try {
@@ -45,9 +58,24 @@ export default function ProductosPage() {
     }
   }, []);
 
+  const fetchDeletedData = useCallback(async () => {
+    try {
+      setIsLoadingDeleted(true);
+      const data = await getDeletedProducts();
+      setDeletedProducts(data);
+    } catch (error) {
+      toast.error("Error al cargar los productos eliminados");
+    } finally {
+      setIsLoadingDeleted(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    if (activeTab === "eliminados") {
+      fetchDeletedData();
+    }
+  }, [fetchData, fetchDeletedData, activeTab]);
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -84,9 +112,36 @@ export default function ProductosPage() {
     }
   };
 
+  const handleRestore = (product: Product) => {
+    setRestoringProduct(product);
+    setRestoreDialogOpen(true);
+  };
+
+  const confirmRestore = async () => {
+    if (!restoringProduct) return;
+
+    try {
+      await restoreProduct(restoringProduct.id);
+      toast.success("Producto restaurado exitosamente");
+      fetchDeletedData();
+      fetchData();
+    } catch (error) {
+      toast.error("Error al restaurar el producto");
+    } finally {
+      setRestoreDialogOpen(false);
+      setRestoringProduct(null);
+    }
+  };
+
   const columns = getColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
+  });
+
+  const deletedColumns = getColumns({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    onRestore: handleRestore,
   });
 
   return (
@@ -98,17 +153,44 @@ export default function ProductosPage() {
         </p>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={products}
-        isLoading={isLoading}
-        searchPlaceholder="Buscar productos..."
-        searchColumnId="name"
-        onDeleteRows={handleDeleteRows}
-        headerActions={
-          <CreateProductDialog categories={categories} onSuccess={fetchData} />
-        }
-      />
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList>
+          <TabsTrigger value="activos">Activos</TabsTrigger>
+          <TabsTrigger value="eliminados">Dados de Baja</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="activos">
+          <DataTable
+            columns={columns}
+            data={products}
+            isLoading={isLoading}
+            searchPlaceholder="Buscar productos..."
+            searchColumnId="name"
+            onDeleteRows={handleDeleteRows}
+            headerActions={
+              <CreateProductDialog
+                categories={categories}
+                onSuccess={fetchData}
+              />
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="eliminados">
+          <DataTable
+            columns={deletedColumns}
+            data={deletedProducts}
+            isLoading={isLoadingDeleted}
+            searchPlaceholder="Buscar productos eliminados..."
+            searchColumnId="name"
+            onDeleteRows={handleDeleteRows}
+          />
+        </TabsContent>
+      </Tabs>
 
       <EditProductDialog
         product={editingProduct}
@@ -124,13 +206,31 @@ export default function ProductosPage() {
             <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción eliminará el producto &quot;{deletingProduct?.name}
-              &quot;. Esta acción no se puede deshacer.
+              &quot;. Podrás restaurarla más tarde si es necesario.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>
               Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Restaurar producto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción restaurará el producto &quot;{restoringProduct?.name}
+              &quot; y estará disponible nuevamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRestore}>
+              Restaurar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

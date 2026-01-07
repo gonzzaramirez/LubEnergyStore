@@ -1,3 +1,4 @@
+import { Footer } from "@/components/footer";
 import "../landing.css";
 
 export default function MainLayout({
@@ -5,6 +6,10 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <Footer />
+    </>
+  );
 }
-

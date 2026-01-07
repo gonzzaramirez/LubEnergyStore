@@ -8,7 +8,14 @@ import { Product } from "@/lib/types";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Minus, Check, ShoppingCart } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  Check,
+  ShoppingCart,
+  ShoppingBag,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -149,7 +156,7 @@ export default function ProductDetailPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16">
         {/* Back Button */}
         <Link href="/#productos">
-          <Button variant="ghost" className="mb-8">
+          <Button variant="ghost" className="mb-4 mt-4 cursor-pointer">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
           </Button>
@@ -194,17 +201,9 @@ export default function ProductDetailPage() {
               <span className="text-5xl font-bold text-primary">
                 {formatPrice(displayPrice)}
               </span>
-              {product.stockQuantity !== undefined && (
-                <span
-                  className={`text-sm font-medium ${
-                    product.stockQuantity > 0
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {product.stockQuantity > 0
-                    ? `${product.stockQuantity} en stock`
-                    : "Sin stock"}
+              {product.stockQuantity === 0 && (
+                <span className="text-sm font-medium text-red-600">
+                  Sin stock
                 </span>
               )}
             </div>
@@ -218,93 +217,54 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Quantity Selector */}
-            <div className="flex flex-col gap-4 border-t border-border pt-6">
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium">Cantidad:</label>
-                <div className="flex items-center gap-2 rounded-lg border border-border">
+            <div className="space-y-6 pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Selector Estilo Cápsula */}
+                <div className="flex items-center rounded-full border border-border p-1 w-fit bg-secondary/10">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={decrementQuantity}
-                    disabled={quantity <= 1}
-                    className="h-10 w-10"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1 || product.stockQuantity === 0}
+                    className="h-10 w-10 rounded-full cursor-pointer"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="min-w-[3rem] text-center font-semibold">
+                  <span className="w-12 text-center text-lg font-medium tabular-nums">
                     {quantity}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={incrementQuantity}
-                    className="h-10 w-10"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    disabled={product.stockQuantity === 0}
+                    className="h-10 w-10 rounded-full cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
 
-              {/* Add to Cart Button */}
-              <Button
-                size="lg"
-                onClick={handleAddToCart}
-                disabled={product.stockQuantity === 0}
-                className="w-full text-lg shadow-lg transition-all hover:shadow-xl"
-              >
-                {isInCart ? (
-                  <>
-                    <Check className="mr-2 h-5 w-5" />
-                    Agregado al carrito
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Agregar al carrito
-                  </>
-                )}
-              </Button>
-
-              {isInCart && (
-                <div className="flex items-center justify-center gap-2">
-                  <p className="text-center text-sm text-muted-foreground">
-                    {cartItem.quantity} en tu carrito
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsOpen(true)}
-                    className="text-xs"
-                  >
-                    Ver carrito
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Additional Info */}
-            <div className="space-y-4 border-t border-border pt-6">
-              <div className="grid gap-4 text-sm">
-                {product.stockQuantity !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Stock disponible:
-                    </span>
-                    <span className="font-medium">{product.stockQuantity}</span>
-                  </div>
-                )}
-                {product.category && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Categoría:</span>
-                    <span className="font-medium">{product.category.name}</span>
-                  </div>
-                )}
+                {/* Botón Principal */}
+                <Button
+                  size="lg"
+                  onClick={handleAddToCart}
+                  disabled={product.stockQuantity === 0}
+                  className="flex-1 rounded-full text-base font-medium h-12 sm:h-auto shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  {product.stockQuantity === 0 ? (
+                    "Sin Stock"
+                  ) : (
+                    <>
+                      Agregar al carrito
+                      <ShoppingBag className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <Footer />
     </main>
   );
 }

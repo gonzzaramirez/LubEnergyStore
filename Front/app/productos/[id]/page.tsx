@@ -8,7 +8,6 @@ import { Product } from "@/lib/types";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Plus, Minus, Check, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/header";
@@ -119,15 +118,6 @@ export default function ProductDetailPage() {
               Volver
             </Button>
           </Link>
-          <div className="grid gap-8 md:grid-cols-2">
-            <Skeleton className="aspect-square w-full rounded-xl" />
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-12 w-48" />
-            </div>
-          </div>
         </div>
         <Footer />
       </main>
@@ -150,7 +140,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const displayPrice = product.price; // Precio ya está en pesos argentinos
+  const displayPrice = product.price;
 
   return (
     <main className="min-h-screen bg-background">

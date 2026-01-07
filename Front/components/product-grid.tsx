@@ -6,7 +6,6 @@ import { ProductCard } from "./product-card"
 import { getProducts } from "@/lib/api/product"
 import { getCategories } from "@/lib/api/category"
 import { Product as APIProduct, Category as APICategory } from "@/lib/types"
-import { Skeleton } from "@/components/ui/skeleton"
 
 // Tipo para el producto adaptado al formato del componente
 interface DisplayProduct {
@@ -72,6 +71,11 @@ export function ProductGrid() {
     return products.filter((p) => p.category === selectedCategory)
   }, [selectedCategory, products, categories])
 
+  // Manejar el cambio de categoría
+  const handleCategoryChange = (category: Category | number) => {
+    setSelectedCategory(category)
+  }
+
   return (
     <section id="productos" className="py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -89,7 +93,7 @@ export function ProductGrid() {
         <div className="mb-10">
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => handleCategoryChange("all")}
               className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 ${
                 selectedCategory === "all"
                   ? "bg-primary text-primary-foreground green-glow"
@@ -101,7 +105,7 @@ export function ProductGrid() {
             {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => handleCategoryChange(category.id)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 ${
                   selectedCategory === category.id
                     ? "bg-primary text-primary-foreground green-glow"
@@ -115,17 +119,7 @@ export function ProductGrid() {
         </div>
 
         {/* Products Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex flex-col space-y-4">
-                <Skeleton className="aspect-square w-full rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : (
+        {!isLoading && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product, index) => (
               <div

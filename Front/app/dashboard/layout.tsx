@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "./components/sidebar";
+import "../globals.css";
 
 export default function DashboardLayout({
   children,

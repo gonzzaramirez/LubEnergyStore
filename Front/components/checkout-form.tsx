@@ -1,54 +1,54 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { ArrowLeft, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useCart } from "@/context/cart-context"
-import { formatPrice } from "@/lib/products"
-import { generateWhatsAppMessage, createWhatsAppUrl } from "@/lib/whatsapp"
+import { useState } from "react";
+import { ArrowLeft, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useCart } from "@/context/cart-context";
+import { formatPrice } from "@/lib/products";
+import { generateWhatsAppMessage, createWhatsAppUrl } from "@/lib/whatsapp";
 
 interface CheckoutFormProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
-const WHATSAPP_NUMBER = "5491112345678" // Número de WhatsApp del comercio
+const WHATSAPP_NUMBER = "3775439981"; // Número de WhatsApp del comercio
 
 export function CheckoutForm({ onBack }: CheckoutFormProps) {
-  const { items, totalPrice, clearCart, setIsOpen } = useCart()
-  const [name, setName] = useState("")
-  const [address, setAddress] = useState("")
-  const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { items, totalPrice, clearCart, setIsOpen } = useCart();
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || !address.trim()) return
+    e.preventDefault();
+    if (!name.trim() || !address.trim()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     const message = generateWhatsAppMessage(items, totalPrice, {
       name: name.trim(),
       address: address.trim(),
       notes: notes.trim() || undefined,
-    })
+    });
 
-    const whatsappUrl = createWhatsAppUrl(WHATSAPP_NUMBER, message)
+    const whatsappUrl = createWhatsAppUrl(WHATSAPP_NUMBER, message);
 
     // Open WhatsApp
-    window.open(whatsappUrl, "_blank")
+    window.open(whatsappUrl, "_blank");
 
     // Clear cart and close sidebar after a brief delay
     setTimeout(() => {
-      clearCart()
-      setIsOpen(false)
-      setIsSubmitting(false)
-    }, 500)
-  }
+      clearCart();
+      setIsOpen(false);
+      setIsSubmitting(false);
+    }, 500);
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -65,20 +65,26 @@ export function CheckoutForm({ onBack }: CheckoutFormProps) {
 
       {/* Order Summary */}
       <div className="border-b border-border bg-secondary/30 p-4">
-        <h3 className="mb-3 text-sm font-medium text-muted-foreground">Resumen del pedido</h3>
+        <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+          Resumen del pedido
+        </h3>
         <div className="space-y-2">
           {items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span className="text-foreground">
                 {item.quantity}x {item.name}
               </span>
-              <span className="text-muted-foreground">{formatPrice(item.price * item.quantity)}</span>
+              <span className="text-muted-foreground">
+                {formatPrice(item.price * item.quantity)}
+              </span>
             </div>
           ))}
         </div>
         <div className="mt-3 flex justify-between border-t border-border pt-3">
           <span className="font-medium text-foreground">Total</span>
-          <span className="font-bold text-primary">{formatPrice(totalPrice)}</span>
+          <span className="font-bold text-primary">
+            {formatPrice(totalPrice)}
+          </span>
         </div>
       </div>
 
@@ -138,5 +144,5 @@ export function CheckoutForm({ onBack }: CheckoutFormProps) {
         </p>
       </form>
     </div>
-  )
+  );
 }

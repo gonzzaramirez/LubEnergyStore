@@ -196,7 +196,7 @@ export default function CategoriasPage() {
             <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción eliminará la categoría &quot;{deletingCategory?.name}
-              &quot;. Podrás restaurarla más tarde si es necesario .
+              &quot;. Podrás restaurarla más tarde si es necesario.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

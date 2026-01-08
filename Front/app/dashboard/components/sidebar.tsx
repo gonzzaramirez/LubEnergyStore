@@ -20,7 +20,6 @@ const navItems = [
   { href: "/dashboard/categorias", label: "Categorías", icon: Tags },
   { href: "/dashboard/users", label: "Usuarios", icon: Users },
   { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Configuración", icon: Settings },
 ];
 
 export default function Sidebar({

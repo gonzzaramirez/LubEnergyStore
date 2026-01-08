@@ -91,24 +91,24 @@ export function ProductGrid() {
   const otherCategories = useMemo(() => categories.slice(5), [categories]);
 
   return (
-    <section id="productos" className="py-16 sm:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="productos" className="py-12 sm:py-16 md:py-20 lg:py-24">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="mb-10 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl">
+        <div className="mb-8 text-center sm:mb-10 md:mb-12">
+          <h2 className="mb-3 text-2xl font-bold text-foreground sm:mb-4 sm:text-3xl md:text-4xl lg:text-5xl">
             Nuestros <span className="text-primary">Productos</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-muted-foreground">
+          <p className="mx-auto max-w-2xl text-sm text-muted-foreground sm:text-base md:text-lg">
             Seleccionamos los mejores suplementos para que alcances tus metas
           </p>
         </div>
 
         {/* Category Filter */}
-        <div className="mb-10">
+        <div className="mb-8 sm:mb-10 md:mb-12">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <button
               onClick={() => handleCategoryChange("all")}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm md:px-5 ${
                 selectedCategory === "all"
                   ? "bg-primary text-primary-foreground green-glow"
                   : "border border-border bg-secondary text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -120,7 +120,7 @@ export function ProductGrid() {
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 ${
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm md:px-5 ${
                   selectedCategory === category.id
                     ? "bg-primary text-primary-foreground green-glow"
                     : "border border-border bg-secondary text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -143,7 +143,7 @@ export function ProductGrid() {
                   }
                 }}
               >
-                <SelectTrigger className="w-[180px] rounded-full border border-border bg-secondary text-muted-foreground hover:border-primary/50 hover:text-foreground data-[state=open]:border-primary/50">
+                <SelectTrigger className="h-8 w-[140px] rounded-full border border-border bg-secondary text-xs text-muted-foreground hover:border-primary/50 hover:text-foreground data-[state=open]:border-primary/50 sm:h-10 sm:w-[160px] sm:text-sm md:w-[180px]">
                   <SelectValue placeholder="Más categorías" />
                 </SelectTrigger>
                 <SelectContent>
@@ -163,7 +163,7 @@ export function ProductGrid() {
 
         {/* Products Grid */}
         {!isLoading && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
@@ -180,8 +180,8 @@ export function ProductGrid() {
         )}
 
         {!isLoading && filteredProducts.length === 0 && (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground">
+          <div className="py-8 text-center sm:py-12">
+            <p className="text-sm text-muted-foreground sm:text-base">
               No hay productos en esta categoría
             </p>
           </div>

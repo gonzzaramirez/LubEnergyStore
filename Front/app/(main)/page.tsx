@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { ProductGrid } from "@/components/product-grid";
+import { ContactSection } from "@/components/contact-section";
 import { CartSidebar } from "@/components/cart-sidebar";
 import { Footer } from "@/components/footer";
 import { HashScrollHandler } from "@/components/hash-scroll-handler";
@@ -12,6 +13,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <ProductGrid />
+      <ContactSection />
       <CartSidebar />
     </main>
   );

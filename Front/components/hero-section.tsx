@@ -79,11 +79,11 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="relative flex min-h-[90vh] items-center justify-center overflow-hidden pt-16"
+      className="relative flex min-h-[85vh] items-center justify-center overflow-hidden pt-16 sm:min-h-[90vh] sm:pt-20"
     >
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-      <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[80px] sm:h-[400px] sm:w-[400px] sm:blur-[100px] lg:h-[500px] lg:w-[500px] lg:blur-[120px]" />
 
       {/* Grid Pattern */}
       <div
@@ -94,9 +94,9 @@ export function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+      <div className="relative z-10 mx-auto w-full max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <motion.div
-          className="absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 translate-x-9 md:block lg:translate-x-48"
+          className="absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 translate-x-4 md:block md:translate-x-8 lg:translate-x-12 xl:translate-x-24"
           style={{
             x: springX,
             y: y,
@@ -120,20 +120,20 @@ export function HeroSection() {
             alt="oso logo"
             width={250}
             height={280}
-            className="cursor-grab active:cursor-grabbing opacity-80"
+            className="h-auto w-[120px] cursor-grab active:cursor-grabbing opacity-80 sm:w-[150px] md:w-[180px] lg:w-[220px] xl:w-[250px]"
             draggable={false}
           />
         </motion.div>
         {/* Badge */}
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
-          <Flame className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 sm:mb-6 sm:px-4 sm:py-2">
+          <Flame className="h-3 w-3 text-primary sm:h-4 sm:w-4" />
+          <span className="text-xs font-medium text-primary sm:text-sm">
             Envíos a todo el país
           </span>
         </div>
 
         {/* Main Heading */}
-        <h1 className="mb-6 text-balance text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+        <h1 className="mb-4 text-balance text-3xl font-bold tracking-tight text-foreground sm:mb-6 sm:text-5xl md:text-6xl lg:text-7xl">
           Potencia tu{" "}
           <span className="text-primary text-glow">rendimiento</span>
           <br />
@@ -141,17 +141,17 @@ export function HeroSection() {
         </h1>
 
         {/* Subtitle */}
-        <p className="mx-auto mb-8 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">
+        <p className="mx-auto mb-6 max-w-2xl text-pretty text-base text-muted-foreground sm:mb-8 sm:text-lg md:text-xl">
           Los mejores suplementos deportivos para alcanzar tus objetivos.
           Proteínas, creatinas, pre-entrenos y más.
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
           <Button
             size="lg"
             onClick={scrollToProducts}
-            className="green-glow glow-pulse px-8 text-base font-semibold cursor-pointer"
+            className="green-glow glow-pulse w-full px-6 text-sm font-semibold cursor-pointer sm:w-auto sm:px-8 sm:text-base"
           >
             Ver productos
           </Button>
@@ -159,17 +159,17 @@ export function HeroSection() {
             size="lg"
             variant="outline"
             onClick={scrollToProducts}
-            className="border-border px-8 text-base bg-transparent cursor-pointer"
+            className="w-full border-border px-6 text-sm bg-transparent cursor-pointer sm:w-auto sm:px-8 sm:text-base"
           >
             Contacto directo
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="relative mt-16 grid grid-cols-3 gap-8">
+        <div className="relative mt-12 grid grid-cols-3 gap-4 sm:mt-16 sm:gap-6 lg:gap-8">
           {/* Rayo Image - Level with stats with floating animation and drag */}
           <motion.div
-            className="absolute left-0 top-1/2 z-20 hidden -translate-y-1/2 -translate-x-9 md:block lg:-translate-x-48"
+            className="absolute left-0 top-1/2 z-20 hidden -translate-y-1/2 -translate-x-4 md:block md:-translate-x-8 lg:-translate-x-12 xl:-translate-x-24"
             style={{
               x: springX2,
               y: y2,
@@ -192,7 +192,7 @@ export function HeroSection() {
               alt="rayo logo"
               width={180}
               height={280}
-              className="cursor-grab active:cursor-grabbing opacity-80"
+              className="h-auto w-[80px] cursor-grab active:cursor-grabbing opacity-80 sm:w-[100px] md:w-[130px] lg:w-[160px] xl:w-[180px]"
               draggable={false}
             />
           </motion.div>
@@ -202,10 +202,10 @@ export function HeroSection() {
             { value: "24hs", label: "Atencion" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-2xl font-bold text-primary sm:text-3xl">
+              <div className="text-xl font-bold text-primary sm:text-2xl md:text-3xl">
                 {stat.value}
               </div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <div className="text-xs text-muted-foreground sm:text-sm">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -213,10 +213,10 @@ export function HeroSection() {
         {/* Scroll Indicator */}
         <button
           onClick={scrollToProducts}
-          className="mt-12 inline-flex animate-bounce items-center justify-center"
+          className="mt-8 inline-flex animate-bounce items-center justify-center sm:mt-12"
           aria-label="Scroll to products"
         >
-          <ArrowDown className="h-6 w-6 text-muted-foreground" />
+          <ArrowDown className="h-5 w-5 text-muted-foreground sm:h-6 sm:w-6" />
         </button>
       </div>
     </section>

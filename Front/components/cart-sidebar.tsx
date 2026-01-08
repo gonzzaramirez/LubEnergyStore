@@ -64,11 +64,13 @@ export function CartSidebar() {
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-4 rounded-lg border border-border bg-secondary/30 p-3">
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.name}
-                        className="h-20 w-20 rounded-lg object-cover"
-                      />
+                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-950 p-2">
+                        <img
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.name}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
                       <div className="flex flex-1 flex-col">
                         <h4 className="font-medium text-foreground line-clamp-1">{item.name}</h4>
                         <p className="text-sm text-primary">{formatPrice(item.price)}</p>

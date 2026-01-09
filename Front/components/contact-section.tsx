@@ -15,14 +15,14 @@ export function ContactSection() {
     {
       icon: <Phone className="h-5 w-5 text-primary" />,
       label: "Teléfono",
-      value: "+54 3775 40-0000",
-      href: "tel:+543775400000",
+      value: "+54 379 505-6878",
+      href: "tel:+543795056878",
     },
     {
       icon: <Mail className="h-5 w-5 text-primary" />,
       label: "Email",
-      value: "contacto@lubenergy.com",
-      href: "mailto:contacto@lubenergy.com",
+      value: "Lubenergy1324@gmail.com",
+      href: "mailto:Lubenergy1324@gmail.com",
     },
     {
       icon: <MapPin className="h-5 w-5 text-primary" />,
@@ -36,7 +36,8 @@ export function ContactSection() {
     {
       icon: <Instagram className="h-6 w-6" />,
       label: "Instagram",
-      href: "#",
+      href: "https://www.instagram.com/lub_energy/",
+      target: "_blank",
     },
     {
       icon: <Facebook className="h-6 w-6" />,
@@ -46,7 +47,8 @@ export function ContactSection() {
     {
       icon: <MessageCircleMore className="h-6 w-6" />,
       label: "WhatsApp",
-      href: "#",
+      href: "https://wa.me/543795056878",
+      target: "_blank",
     },
   ];
 

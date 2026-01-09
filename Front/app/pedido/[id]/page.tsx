@@ -268,7 +268,7 @@ export default async function OrderTrackingPage({ params }: PageProps) {
             ¿Tenés alguna consulta sobre tu pedido?
           </p>
           <a
-            href="https://wa.me/3775439981"
+            href="https://wa.me/543795056878"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"

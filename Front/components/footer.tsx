@@ -29,7 +29,9 @@ export function Footer() {
               <Facebook className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </a>
             <a
-              href="#"
+              href="https://wa.me/543795056878"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-muted-foreground transition-colors hover:text-primary"
               aria-label="WhatsApp"
             >

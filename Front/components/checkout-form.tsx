@@ -32,7 +32,7 @@ interface CheckoutFormProps {
   appliedDiscount?: AppliedDiscount | null;
 }
 
-const WHATSAPP_NUMBER = "3775439981";
+const WHATSAPP_NUMBER = "3795056878";
 
 export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
   const { items, totalPrice, clearCart, setIsOpen } = useCart();
@@ -128,8 +128,10 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
         apartment: apartment.trim() || undefined,
         city: city.trim(),
         province: provinceName,
-        customerNotes: appliedDiscount 
-          ? `${notes.trim() ? notes.trim() + ' | ' : ''}Código descuento: ${appliedDiscount.code} (-${appliedDiscount.discountPercent}%)`
+        customerNotes: appliedDiscount
+          ? `${notes.trim() ? notes.trim() + " | " : ""}Código descuento: ${
+              appliedDiscount.code
+            } (-${appliedDiscount.discountPercent}%)`
           : notes.trim() || undefined,
         items: items.map((item) => ({
           productId: item.id,
@@ -234,7 +236,8 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
           {/* Order Summary */}
           <div className="border-b border-border bg-secondary/30 p-4">
             <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-              Resumen del pedido ({items.length} {items.length === 1 ? "producto" : "productos"})
+              Resumen del pedido ({items.length}{" "}
+              {items.length === 1 ? "producto" : "productos"})
             </h3>
             <div className="space-y-2">
               {items.map((item) => (
@@ -261,8 +264,12 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
             {/* Datos personales */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">1</span>
-                <h4 className="text-sm font-semibold text-foreground">Datos personales</h4>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                  1
+                </span>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Datos personales
+                </h4>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -311,7 +318,7 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="3775123456"
+                    placeholder="..."
                     required
                     className="bg-secondary/50"
                   />
@@ -333,8 +340,12 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
             {/* Dirección de envío */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">2</span>
-                <h4 className="text-sm font-semibold text-foreground">Dirección de envío</h4>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                  2
+                </span>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Dirección de envío
+                </h4>
               </div>
 
               <div className="space-y-2">
@@ -350,7 +361,9 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="apartment">Piso / Departamento (opcional)</Label>
+                <Label htmlFor="apartment">
+                  Piso / Departamento (opcional)
+                </Label>
                 <Input
                   id="apartment"
                   value={apartment}
@@ -369,7 +382,9 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
                     disabled={loadingProvincias}
                   >
                     <SelectTrigger className="bg-secondary/50">
-                      <SelectValue placeholder={loadingProvincias ? "..." : "Elegir"} />
+                      <SelectValue
+                        placeholder={loadingProvincias ? "..." : "Elegir"}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {provincias.map((prov) => (
@@ -389,7 +404,11 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
                     disabled={loadingLocalidades || !province}
                   >
                     <SelectTrigger className="bg-secondary/50">
-                      <SelectValue placeholder={loadingLocalidades ? "..." : province ? "Elegir" : "-"} />
+                      <SelectValue
+                        placeholder={
+                          loadingLocalidades ? "..." : province ? "Elegir" : "-"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       <div className="px-2 py-2">
@@ -406,11 +425,13 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
                           {loc.nombre}
                         </SelectItem>
                       ))}
-                      {filteredLocalidades.length === 0 && !loadingLocalidades && province && (
-                        <div className="px-2 py-4 text-center text-[10px] text-muted-foreground">
-                          Sin resultados
-                        </div>
-                      )}
+                      {filteredLocalidades.length === 0 &&
+                        !loadingLocalidades &&
+                        province && (
+                          <div className="px-2 py-4 text-center text-[10px] text-muted-foreground">
+                            Sin resultados
+                          </div>
+                        )}
                     </SelectContent>
                   </Select>
                 </div>

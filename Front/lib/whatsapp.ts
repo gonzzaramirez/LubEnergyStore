@@ -15,57 +15,48 @@ interface CustomerData {
 
 export function generateWhatsAppMessage(items: CartItem[], total: number, customer: CustomerData): string {
   const productLines = items
-    .map((item) => `• ${item.quantity}x ${item.name} - ${formatPrice(item.price)} c/u`)
+    .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.price)}`)
     .join("\n")
 
-  let message = `🛒 *Nuevo Pedido - LUB ENERGY*
-━━━━━━━━━━━━━━━━━━━━`
+  let message = `*PEDIDO LUB ENERGY*`
 
   if (customer.orderId) {
-    message += `
-🔖 *Pedido #${customer.orderId}*`
+    message += ` #${customer.orderId}`
   }
 
   message += `
 
-📦 *Productos:*
-${productLines}
+${productLines}`
 
-━━━━━━━━━━━━━━━━━━━━`
-
-  // Agregar descuento si existe
   if (customer.discountCode && customer.discountPercent) {
     message += `
-🏷️ *Código:* ${customer.discountCode} (-${customer.discountPercent}%)`
+
+Descuento: ${customer.discountCode} (-${customer.discountPercent}%)`
   }
 
   message += `
-💰 *Total: ${formatPrice(total)}*
 
-👤 *Cliente:* ${customer.name}`
+*Total: ${formatPrice(total)}*
+
+---
+*${customer.name}*`
+
+  if (customer.phone) {
+    message += ` | ${customer.phone}`
+  }
 
   if (customer.dni) {
     message += `
-🪪 *DNI:* ${customer.dni}`
-  }
-
-  if (customer.email) {
-    message += `
-📧 *Email:* ${customer.email}`
-  }
-
-  if (customer.phone) {
-    message += `
-📞 *Teléfono:* ${customer.phone}`
+DNI: ${customer.dni}`
   }
 
   message += `
-📍 *Dirección:* ${customer.address}`
+${customer.address}`
 
   if (customer.notes) {
     message += `
 
-📝 *Notas:* ${customer.notes}`
+_${customer.notes}_`
   }
 
   return encodeURIComponent(message.trim())

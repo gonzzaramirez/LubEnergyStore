@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Obtener el token de las cookies
@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   
   // Debug en desarrollo
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Middleware:', {
+    console.log('🔍 Proxy:', {
       pathname,
       hasAccessToken: !!accessToken,
       allCookies: request.cookies.getAll().map(c => c.name),

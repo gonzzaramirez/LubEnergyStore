@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, MessageCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
 import { generateWhatsAppMessage, createWhatsAppUrl } from "@/lib/whatsapp";
 import { createOrder } from "@/lib/api/order";
 import { getProvincias, getLocalidades } from "@/lib/api/georef";
 import type { Provincia, Localidad } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Mail, CheckCircle2 } from "lucide-react";
 
 interface AppliedDiscount {
   code: string;
@@ -61,6 +67,7 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Estados para GeoRef
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -114,6 +121,12 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
     e.preventDefault();
     if (!isFormValid) return;
 
+    // Mostrar modal de verificación en lugar de crear el pedido directamente
+    setShowVerificationModal(true);
+  };
+
+  const confirmAndSubmit = async () => {
+    setShowVerificationModal(false);
     setIsSubmitting(true);
 
     try {
@@ -478,6 +491,77 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
           </form>
         </div>
       </div>
+
+      {/* Modal de verificación */}
+      <Dialog
+        open={showVerificationModal}
+        onOpenChange={setShowVerificationModal}
+      >
+        <DialogContent className="w-[92vw] sm:max-w-md p-6 sm:p-8 rounded-[2rem] sm:rounded-3xl border-none">
+          <div className="flex flex-col items-center text-center space-y-5 sm:space-y-6">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Mail className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+            </div>
+
+            <div className="space-y-2">
+              <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
+                ¿Tus datos son correctos?
+              </DialogTitle>
+              <DialogDescription className="text-sm sm:text-base text-muted-foreground leading-relaxed px-1 sm:px-2">
+                Es fundamental que el <strong>correo electrónico</strong>{" "}
+                ingresado sea el correcto.
+              </DialogDescription>
+            </div>
+
+            <div className="bg-secondary/40 p-4 sm:p-5 rounded-2xl w-full text-left space-y-3 border border-border/50">
+              <p className="text-xs sm:text-sm text-foreground/80 font-medium">
+                Una vez confirmado tu pago, recibirás un mail con:
+              </p>
+              <ul className="space-y-2 sm:space-y-2.5">
+                {[
+                  "Los detalles completos de tu compra.",
+                  "Link exclusivo para ver el estado de tu pedido.",
+                  "El código de seguimiento de tu pedido.",
+                ].map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-xs sm:text-sm text-muted-foreground"
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="w-full flex flex-col gap-2.5 sm:gap-3 pt-1 sm:pt-2">
+              <Button
+                onClick={confirmAndSubmit}
+                disabled={isSubmitting}
+                size="lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold h-12 sm:h-14 text-sm sm:text-base rounded-xl shadow-lg shadow-green-900/10 cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  "Confirmar y finalizar"
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setShowVerificationModal(false)}
+                disabled={isSubmitting}
+                className="w-full text-muted-foreground text-xs sm:text-sm h-10 sm:h-12"
+              >
+                Revisar mis datos
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { DataTable } from "@/components/data-table";
 import { getColumns } from "./components/columns";
 import { OrderDetailDialog } from "./components/order-detail-dialog";
 import { TrackingDialog } from "./components/tracking-dialog";
+import { ConfirmPaymentDialog } from "./components/confirm-payment-dialog";
 import { Order, OrderStatus, OrderStats } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
 import {
@@ -46,6 +47,7 @@ export default function PedidosPage() {
 
   const [confirmingOrder, setConfirmingOrder] = useState<Order | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
@@ -89,15 +91,17 @@ export default function PedidosPage() {
   const confirmPayment = async () => {
     if (!confirmingOrder) return;
 
+    setIsConfirming(true);
     try {
       await updateOrderStatus(confirmingOrder.id, "CONFIRMED");
       toast.success("Pago confirmado. Se envió email al cliente.");
       fetchData();
-    } catch (error) {
-      toast.error("Error al confirmar el pago");
-    } finally {
       setConfirmDialogOpen(false);
       setConfirmingOrder(null);
+    } catch (error: any) {
+      toast.error(error.message || "Error al confirmar el pago");
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -246,27 +250,13 @@ export default function PedidosPage() {
       />
 
       {/* Confirmar pago */}
-      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Confirmar pago?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción confirmará el pago del pedido #
-              {confirmingOrder?.id.slice(0, 8).toUpperCase()} y se enviará un
-              email de confirmación al cliente con el link de seguimiento.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmPayment}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Confirmar pago
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmPaymentDialog
+        order={confirmingOrder}
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        onConfirm={confirmPayment}
+        isLoading={isConfirming}
+      />
 
       {/* Cancelar pedido */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>

@@ -117,7 +117,7 @@ export function HeroSection() {
           }}
         >
           <Image
-            src="/oso.png"
+            src="/oso2.png"
             alt="oso logo"
             width={250}
             height={280}
@@ -191,7 +191,7 @@ export function HeroSection() {
             }}
           >
             <Image
-              src="/rayo.png"
+              src="/rayo2.png"
               alt="rayo logo"
               width={180}
               height={280}

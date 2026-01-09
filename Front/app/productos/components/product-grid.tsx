@@ -57,8 +57,10 @@ export function ProductGrid({
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        // Solo pasar featured=true cuando featuredOnly es true
+        // Cuando featuredOnly es false, no pasar parámetro para obtener TODOS los productos
         const [productsData, categoriesData] = await Promise.all([
-          getProducts(featuredOnly),
+          getProducts(featuredOnly ? true : undefined),
           getCategories(),
         ]);
 

@@ -46,12 +46,12 @@ export class EmailService {
       this.logger.warn('RESEND_API_KEY no configurada. Los emails no se enviarán.');
     }
     this.resend = new Resend(apiKey);
-    this.fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+    this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
   }
 
-  // Precios sin formateo complejo, solo matemática básica y signo $
-  private formatPrice(cents: number): string {
-    return `$${cents / 100}`;
+  // Formatear precio en pesos argentinos con separadores de miles
+  private formatPrice(price: number): string {
+    return `$${price.toLocaleString('es-AR')}`;
   }
 
   private getBaseStyles(): string {

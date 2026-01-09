@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./components/sidebar";
 import "../globals.css";
 
@@ -10,6 +11,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  
+  // No mostrar sidebar en la página de login
+  const isLoginPage = pathname === "/dashboard/login";
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">

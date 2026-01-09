@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   Tags,
-  Users,
   BarChart3,
-  Settings,
   LogOut,
   TrendingUp,
   Ticket,
+  Loader2,
 } from "lucide-react";
+import { logout } from "@/lib/api/auth";
+import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
@@ -22,7 +23,6 @@ const navItems = [
   { href: "/dashboard/categorias", label: "Categorías", icon: Tags },
   { href: "/dashboard/precios", label: "Ajustar Precios", icon: TrendingUp },
   { href: "/dashboard/descuentos", label: "Códigos Descuento", icon: Ticket },
-
   { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },
 ];
 
@@ -34,6 +34,21 @@ export default function Sidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.push("/dashboard/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -91,15 +106,18 @@ export default function Sidebar({
         {/* Logout */}
         <div className="absolute bottom-0 left-0 w-full p-3 border-t border-slate-200">
           <button
-            onClick={async () => {
-              // Aquí deberías implementar la lógica de logout
-              // Por ejemplo, llamar a una API para cerrar sesión
-            }}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
             className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg
-              text-sm text-slate-800 hover:bg-slate-100 transition-colors"
+              text-sm text-slate-800 hover:bg-slate-100 transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogOut className="w-5 h-5" />
-            Cerrar sesión
+            {isLoggingOut ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <LogOut className="w-5 h-5" />
+            )}
+            {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
           </button>
         </div>
       </aside>

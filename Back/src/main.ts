@@ -2,11 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { config } from 'dotenv';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Seguridad: Headers HTTP
+  app.use(helmet());
+
+  // Parser de cookies (para JWT en httpOnly cookies)
+  app.use(cookieParser());
 
   // Validación global de DTOs
   app.useGlobalPipes(
@@ -17,10 +25,10 @@ async function bootstrap() {
     }),
   );
 
-  // Habilitar CORS para Next.js en localhost:3000
+  // Habilitar CORS para Next.js
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
+    credentials: true, // Importante para cookies
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });

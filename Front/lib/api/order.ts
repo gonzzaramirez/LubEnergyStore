@@ -9,7 +9,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// --- Endpoints públicos ---
+// --- RUTAS PÚBLICAS ---
 
 export async function createOrder(data: CreateOrderDto): Promise<CreateOrderResponse> {
   const response = await fetch(`${API_URL}/orders`, {
@@ -40,7 +40,7 @@ export async function getOrderPublic(id: string): Promise<OrderPublic> {
   return response.json();
 }
 
-// --- Endpoints de Admin ---
+// --- RUTAS PROTEGIDAS (requieren auth) ---
 
 export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   const url = status
@@ -49,6 +49,7 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
 
   const response = await fetch(url, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -61,6 +62,7 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
 export async function getOrder(id: string): Promise<Order> {
   const response = await fetch(`${API_URL}/orders/${id}`, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -73,6 +75,7 @@ export async function getOrder(id: string): Promise<Order> {
 export async function getOrderStats(): Promise<OrderStats> {
   const response = await fetch(`${API_URL}/orders/stats`, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -92,6 +95,7 @@ export async function updateOrderStatus(
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify({ status, adminNotes }),
   });
 
@@ -112,6 +116,7 @@ export async function updateOrderTracking(
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify({ trackingCode, courierName }),
   });
 
@@ -125,6 +130,7 @@ export async function updateOrderTracking(
 export async function deleteOrder(id: string): Promise<void> {
   const response = await fetch(`${API_URL}/orders/${id}`, {
     method: "DELETE",
+    credentials: "include",
   });
 
   if (!response.ok) {

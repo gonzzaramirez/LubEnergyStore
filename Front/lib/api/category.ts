@@ -2,6 +2,8 @@ import { Category, CreateCategoryDto, UpdateCategoryDto } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// --- RUTAS PÚBLICAS ---
+
 export async function getCategories(): Promise<Category[]> {
   const response = await fetch(`${API_URL}/categories`, {
     cache: "no-store",
@@ -9,18 +11,6 @@ export async function getCategories(): Promise<Category[]> {
 
   if (!response.ok) {
     throw new Error("Error al obtener categorías");
-  }
-
-  return response.json();
-}
-
-export async function getDeletedCategories(): Promise<Category[]> {
-  const response = await fetch(`${API_URL}/categories/deleted`, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Error al obtener categorías eliminadas");
   }
 
   return response.json();
@@ -38,6 +28,21 @@ export async function getCategory(id: number): Promise<Category> {
   return response.json();
 }
 
+// --- RUTAS PROTEGIDAS (requieren auth) ---
+
+export async function getDeletedCategories(): Promise<Category[]> {
+  const response = await fetch(`${API_URL}/categories/admin/deleted`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener categorías eliminadas");
+  }
+
+  return response.json();
+}
+
 export async function createCategory(
   data: CreateCategoryDto
 ): Promise<Category> {
@@ -46,6 +51,7 @@ export async function createCategory(
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify(data),
   });
 
@@ -65,6 +71,7 @@ export async function updateCategory(
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify(data),
   });
 
@@ -78,6 +85,7 @@ export async function updateCategory(
 export async function deleteCategory(id: number): Promise<void> {
   const response = await fetch(`${API_URL}/categories/${id}`, {
     method: "DELETE",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -91,6 +99,7 @@ export async function restoreCategory(id: number): Promise<Category> {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
   });
 
   if (!response.ok) {

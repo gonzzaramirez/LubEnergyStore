@@ -96,11 +96,13 @@ export async function updateOrderStatus(
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify({ status, adminNotes }),
+    body: JSON.stringify({ status, ...(adminNotes && { adminNotes }) }),
   });
 
   if (!response.ok) {
-    throw new Error("Error al actualizar el estado del pedido");
+    const error = await response.json().catch(() => ({}));
+    const errorMessage = error.message || error.error || "Error al actualizar el estado del pedido";
+    throw new Error(errorMessage);
   }
 
   return response.json();

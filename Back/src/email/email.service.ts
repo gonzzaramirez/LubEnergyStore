@@ -51,7 +51,9 @@ export class EmailService {
 
   // Formatear precio en pesos argentinos con separadores de miles
   private formatPrice(price: number): string {
-    return `$${price.toLocaleString('es-AR')}`;
+    // Formatear manualmente para evitar dependencia de locales del sistema
+    const formatted = price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `$${formatted}`;
   }
 
   private getBaseStyles(): string {

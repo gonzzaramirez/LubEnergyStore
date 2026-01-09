@@ -229,27 +229,32 @@ export class OrdersService {
     // Enviar email de confirmación cuando se confirma el pago
     if (updateDto.status === OrderStatusUpdate.CONFIRMED && updatedOrder.guestCustomer) {
       const customer = updatedOrder.guestCustomer;
-      await this.emailService.sendOrderConfirmation({
-        orderId: updatedOrder.id,
-        customer: {
-          firstName: customer.firstName,
-          lastName: customer.lastName,
-          email: customer.email,
-          phone: customer.phone,
-          dni: customer.dni,
-          street: customer.street,
-          apartment: customer.apartment || undefined,
-          city: customer.city,
-          province: customer.province,
-        },
-        items: updatedOrder.items.map((item) => ({
-          productName: item.productName,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-        })),
-        totalAmount: updatedOrder.totalAmount,
-        trackingUrl: this.getTrackingUrl(updatedOrder.id),
-      });
+      try {
+        await this.emailService.sendOrderConfirmation({
+          orderId: updatedOrder.id,
+          customer: {
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            email: customer.email,
+            phone: customer.phone,
+            dni: customer.dni,
+            street: customer.street,
+            apartment: customer.apartment || undefined,
+            city: customer.city,
+            province: customer.province,
+          },
+          items: updatedOrder.items.map((item) => ({
+            productName: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+          totalAmount: updatedOrder.totalAmount,
+          trackingUrl: this.getTrackingUrl(updatedOrder.id),
+        });
+      } catch (error) {
+        // Log el error pero no fallar la confirmación del pedido
+        console.error('Error al enviar email de confirmación:', error);
+      }
     }
 
     return updatedOrder;

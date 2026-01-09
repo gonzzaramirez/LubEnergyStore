@@ -66,7 +66,12 @@ export class OrdersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateOrderStatusDto,
   ) {
-    return this.ordersService.updateStatus(id, updateDto);
+    try {
+      return this.ordersService.updateStatus(id, updateDto);
+    } catch (error) {
+      console.error('Error en updateStatus:', error);
+      throw error;
+    }
   }
 
   // Agregar código de seguimiento (admin)

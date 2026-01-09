@@ -22,10 +22,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
-import { UpdateProductDto, Product, Category } from "@/lib/types";
-import { updateProduct } from "@/lib/api/product";
+import { Loader2, Percent, History, TrendingUp, Package } from "lucide-react";
+import { UpdateProductDto, Product, Category, PriceHistory } from "@/lib/types";
+import { updateProduct, getPriceHistory } from "@/lib/api/product";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/products";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface EditProductDialogProps {
   product: Product | null;
@@ -43,6 +50,8 @@ export function EditProductDialog({
   onSuccess,
 }: EditProductDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const {
     register,
@@ -64,10 +73,37 @@ export function EditProductDialog({
         stockQuantity: product.stockQuantity,
         imageUrl: product.imageUrl,
         isActive: product.isActive,
+        isFeatured: product.isFeatured,
         categoryId: product.categoryId,
+        // Promociones
+        discountPercent: product.discountPercent || undefined,
+        discountStartDate: product.discountStartDate
+          ? product.discountStartDate.split("T")[0]
+          : undefined,
+        discountEndDate: product.discountEndDate
+          ? product.discountEndDate.split("T")[0]
+          : undefined,
+        // Descuento por cantidad
+        minQuantityDiscount: product.minQuantityDiscount || undefined,
+        quantityDiscountPercent: product.quantityDiscountPercent || undefined,
       });
+
+      // Cargar historial de precios
+      loadPriceHistory(product.id);
     }
   }, [product, reset]);
+
+  const loadPriceHistory = async (productId: string) => {
+    try {
+      setLoadingHistory(true);
+      const history = await getPriceHistory(productId);
+      setPriceHistory(history);
+    } catch (error) {
+      console.error("Error al cargar historial:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const generateSlug = (name: string) => {
     return name
@@ -95,6 +131,7 @@ export function EditProductDialog({
   };
 
   const isActive = watch("isActive");
+  const isFeatured = watch("isFeatured");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -231,15 +268,191 @@ export function EditProductDialog({
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="edit-isActive"
-                checked={isActive}
-                onCheckedChange={(checked) => setValue("isActive", checked)}
-              />
-              <Label htmlFor="edit-isActive">Producto activo</Label>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="edit-isActive"
+                  checked={isActive}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
+                <Label htmlFor="edit-isActive">Producto activo</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="edit-isFeatured"
+                  checked={isFeatured}
+                  onCheckedChange={(checked) => setValue("isFeatured", checked)}
+                />
+                <Label htmlFor="edit-isFeatured">Producto destacado</Label>
+              </div>
             </div>
           </div>
+
+          {/* Sección de Promociones y Descuentos */}
+          <Accordion type="single" collapsible className="w-full">
+            {/* Promoción por tiempo */}
+            <AccordionItem value="promo">
+              <AccordionTrigger className="text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <Percent className="h-4 w-4" />
+                  Promoción por tiempo
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-discountPercent">% Descuento</Label>
+                    <Input
+                      id="edit-discountPercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="20"
+                      {...register("discountPercent", {
+                        valueAsNumber: true,
+                        min: { value: 0, message: "Mínimo 0%" },
+                        max: { value: 100, message: "Máximo 100%" },
+                      })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ej: 20 = 20% de descuento
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-discountStartDate">Fecha inicio</Label>
+                    <Input
+                      id="edit-discountStartDate"
+                      type="date"
+                      {...register("discountStartDate")}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-discountEndDate">Fecha fin</Label>
+                    <Input
+                      id="edit-discountEndDate"
+                      type="date"
+                      {...register("discountEndDate")}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Si no se especifican fechas, el descuento estará siempre activo.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Descuento por cantidad */}
+            <AccordionItem value="quantity">
+              <AccordionTrigger className="text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Descuento por cantidad
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-minQuantityDiscount">
+                      Cantidad mínima
+                    </Label>
+                    <Input
+                      id="edit-minQuantityDiscount"
+                      type="number"
+                      min="2"
+                      placeholder="2"
+                      {...register("minQuantityDiscount", {
+                        valueAsNumber: true,
+                        min: { value: 2, message: "Mínimo 2 unidades" },
+                      })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ej: 2 = comprando 2 o más
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-quantityDiscountPercent">
+                      % Descuento
+                    </Label>
+                    <Input
+                      id="edit-quantityDiscountPercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="10"
+                      {...register("quantityDiscountPercent", {
+                        valueAsNumber: true,
+                        min: { value: 0, message: "Mínimo 0%" },
+                        max: { value: 100, message: "Máximo 100%" },
+                      })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ej: 10 = 10% off por cantidad
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Historial de precios */}
+            <AccordionItem value="history">
+              <AccordionTrigger className="text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Historial de precios
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                {loadingHistory ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : priceHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    No hay cambios de precio registrados.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {priceHistory.map((record) => (
+                      <div
+                        key={record.id}
+                        className="flex items-center justify-between text-sm p-2 rounded bg-muted/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp
+                            className={`h-4 w-4 ${
+                              record.changePercent > 0
+                                ? "text-red-500"
+                                : "text-green-500"
+                            }`}
+                          />
+                          <span className="text-muted-foreground">
+                            {formatPrice(record.oldPrice)} →{" "}
+                            {formatPrice(record.newPrice)}
+                          </span>
+                          <span
+                            className={`text-xs font-medium ${
+                              record.changePercent > 0
+                                ? "text-red-500"
+                                : "text-green-500"
+                            }`}
+                          >
+                            ({record.changePercent > 0 ? "+" : ""}
+                            {record.changePercent.toFixed(1)}%)
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <span className="hidden sm:inline">
+                            {record.reason} -{" "}
+                          </span>
+                          {new Date(record.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <DialogFooter>
             <Button

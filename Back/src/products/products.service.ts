@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { BulkPriceUpdateDto } from './dto/bulk-price-update.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -8,14 +9,29 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createProductDto: CreateProductDto) {
+    // Preparar datos, convirtiendo fechas al formato ISO-8601 completo
+    const dataToCreate: any = { ...createProductDto };
+
+    if (dataToCreate.discountStartDate) {
+      dataToCreate.discountStartDate = new Date(dataToCreate.discountStartDate);
+    }
+    if (dataToCreate.discountEndDate) {
+      dataToCreate.discountEndDate = new Date(dataToCreate.discountEndDate);
+    }
+
     return this.prisma.product.create({
-      data: createProductDto,
+      data: dataToCreate,
     });
   }
 
-  findAll() {
+  findAll(isFeatured?: boolean) {
+    const where: any = { deletedAt: null };
+    if (isFeatured !== undefined) {
+      where.isFeatured = isFeatured;
+    }
+
     return this.prisma.product.findMany({
-      where: { deletedAt: null },
+      where,
       include: { category: true },
     });
   }
@@ -41,11 +57,39 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    await this.findOne(id);
+    const existingProduct = await this.findOne(id);
+
+    // Si el precio cambió, registrar en historial
+    if (updateProductDto.price !== undefined && updateProductDto.price !== existingProduct.price) {
+      const oldPrice = existingProduct.price;
+      const newPrice = updateProductDto.price;
+      const changePercent = ((newPrice - oldPrice) / oldPrice) * 100;
+
+      await this.prisma.priceHistory.create({
+        data: {
+          productId: id,
+          oldPrice,
+          newPrice,
+          changePercent,
+          reason: 'Edición manual',
+        },
+      });
+    }
+
+    // Preparar datos para actualizar, convirtiendo fechas al formato ISO-8601 completo
+    const dataToUpdate: any = { ...updateProductDto };
+
+    // Convertir fechas de descuento si están presentes
+    if (dataToUpdate.discountStartDate) {
+      dataToUpdate.discountStartDate = new Date(dataToUpdate.discountStartDate);
+    }
+    if (dataToUpdate.discountEndDate) {
+      dataToUpdate.discountEndDate = new Date(dataToUpdate.discountEndDate);
+    }
 
     return this.prisma.product.update({
       where: { id },
-      data: updateProductDto,
+      data: dataToUpdate,
     });
   }
 
@@ -75,6 +119,71 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id },
       data: { deletedAt: null },
+    });
+  }
+
+  // Aumento/baja masivo de precios
+  async bulkPriceUpdate(dto: BulkPriceUpdateDto) {
+    const { percentChange, categoryId, reason } = dto;
+
+    // Obtener productos a actualizar
+    const where: any = { deletedAt: null };
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
+    const products = await this.prisma.product.findMany({ where });
+
+    if (products.length === 0) {
+      return { updated: 0, message: 'No se encontraron productos para actualizar' };
+    }
+
+    // Calcular el motivo del cambio
+    const changeReason = reason || 
+      (categoryId 
+        ? `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (categoría)`
+        : `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (todos)`);
+
+    // Actualizar cada producto y crear historial
+    const updates = products.map(async (product) => {
+      const oldPrice = product.price;
+      const newPrice = Math.round(oldPrice * (1 + percentChange / 100));
+
+      // Crear registro de historial
+      await this.prisma.priceHistory.create({
+        data: {
+          productId: product.id,
+          oldPrice,
+          newPrice,
+          changePercent: percentChange,
+          reason: changeReason,
+        },
+      });
+
+      // Actualizar precio del producto
+      return this.prisma.product.update({
+        where: { id: product.id },
+        data: { price: newPrice },
+      });
+    });
+
+    await Promise.all(updates);
+
+    return {
+      updated: products.length,
+      percentChange,
+      message: `Se actualizaron ${products.length} productos con un ${percentChange > 0 ? 'aumento' : 'descuento'} del ${Math.abs(percentChange)}%`,
+    };
+  }
+
+  // Obtener historial de precios de un producto
+  async getPriceHistory(productId: string) {
+    await this.findOne(productId); // Verificar que existe
+
+    return this.prisma.priceHistory.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'desc' },
+      take: 50, // Últimos 50 cambios
     });
   }
 }

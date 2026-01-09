@@ -218,13 +218,23 @@ export function CreateProductDialog({
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isActive"
-                defaultChecked={true}
-                onCheckedChange={(checked) => setValue("isActive", checked)}
-              />
-              <Label htmlFor="isActive">Producto activo</Label>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isActive"
+                  defaultChecked={true}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
+                <Label htmlFor="isActive">Producto activo</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isFeatured"
+                  defaultChecked={false}
+                  onCheckedChange={(checked) => setValue("isFeatured", checked)}
+                />
+                <Label htmlFor="isFeatured">Producto destacado</Label>
+              </div>
             </div>
           </div>
 

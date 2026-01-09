@@ -1,15 +1,59 @@
 "use client"
 
-import { X, Minus, Plus, Trash2, ShoppingBag } from "lucide-react"
+import { X, Minus, Plus, Trash2, ShoppingBag, Ticket, Loader2, Check } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import { formatPrice } from "@/lib/products"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { CheckoutForm } from "./checkout-form"
 import { useState } from "react"
+import { validateDiscountCode } from "@/lib/api/discount-code"
+import { toast } from "sonner"
+
+interface AppliedDiscount {
+  code: string
+  discountPercent: number
+}
 
 export function CartSidebar() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice } = useCart()
   const [showCheckout, setShowCheckout] = useState(false)
+  const [discountCode, setDiscountCode] = useState("")
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast.error("Ingresa un código de descuento")
+      return
+    }
+
+    try {
+      setIsValidating(true)
+      const result = await validateDiscountCode(discountCode.trim(), totalPrice)
+      setAppliedDiscount({
+        code: result.code,
+        discountPercent: result.discountPercent,
+      })
+      setDiscountCode("")
+      toast.success(`¡Código aplicado! ${result.discountPercent}% de descuento`)
+    } catch (error: any) {
+      toast.error(error.message || "Código no válido")
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null)
+    toast.info("Código de descuento eliminado")
+  }
+
+  // Calcular el total con descuento
+  const discountAmount = appliedDiscount
+    ? Math.round(totalPrice * (appliedDiscount.discountPercent / 100))
+    : 0
+  const finalTotal = totalPrice - discountAmount
 
   if (!isOpen) return null
 
@@ -46,7 +90,10 @@ export function CartSidebar() {
         </div>
 
         {showCheckout ? (
-          <CheckoutForm onBack={() => setShowCheckout(false)} />
+          <CheckoutForm 
+            onBack={() => setShowCheckout(false)} 
+            appliedDiscount={appliedDiscount}
+          />
         ) : (
           <>
             {/* Cart Items */}
@@ -107,11 +154,70 @@ export function CartSidebar() {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t border-border p-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="text-muted-foreground">Total</span>
-                  <span className="text-2xl font-bold text-primary">{formatPrice(totalPrice)}</span>
+              <div className="border-t border-border p-4 space-y-4">
+                {/* Código de descuento */}
+                <div className="space-y-2">
+                  {appliedDiscount ? (
+                    <div className="flex items-center justify-between rounded-lg bg-green-500/10 p-3">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-sm font-medium text-green-500">
+                          {appliedDiscount.code} (-{appliedDiscount.discountPercent}%)
+                        </span>
+                      </div>
+                      <button
+                        onClick={removeDiscount}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Código de descuento"
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                        className="h-9 text-sm uppercase"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleApplyDiscount()
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleApplyDiscount}
+                        disabled={isValidating}
+                        className="h-9 px-3"
+                      >
+                        {isValidating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Ticket className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
+
+                {/* Totales */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-foreground">{formatPrice(totalPrice)}</span>
+                  </div>
+                  {appliedDiscount && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-green-500">Descuento</span>
+                      <span className="text-green-500">-{formatPrice(discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <span className="font-medium text-foreground">Total</span>
+                    <span className="text-2xl font-bold text-primary">{formatPrice(finalTotal)}</span>
+                  </div>
+                </div>
+
                 <Button
                   className="w-full green-glow text-base font-semibold"
                   size="lg"

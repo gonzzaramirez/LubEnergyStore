@@ -11,6 +11,7 @@ import {
 } from "motion/react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 
 export function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
@@ -148,21 +149,23 @@ export function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-          <Button
-            size="lg"
-            onClick={scrollToProducts}
-            className="green-glow glow-pulse w-full px-6 text-sm font-semibold cursor-pointer sm:w-auto sm:px-8 sm:text-base"
-          >
-            Ver productos
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={scrollToProducts}
-            className="w-full border-border px-6 text-sm bg-transparent cursor-pointer sm:w-auto sm:px-8 sm:text-base"
-          >
-            Contacto directo
-          </Button>
+          <Link href="/productos">
+            <Button
+              size="lg"
+              className="green-glow glow-pulse w-full px-6 text-sm font-semibold cursor-pointer sm:w-auto sm:px-8 sm:text-base"
+            >
+              Ver productos
+            </Button>
+          </Link>
+          <Link href="/contacto">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full border-border px-6 text-sm bg-transparent cursor-pointer sm:w-auto sm:px-8 sm:text-base"
+            >
+              Contacto directo
+            </Button>
+          </Link>
         </div>
 
         {/* Stats */}
@@ -205,7 +208,9 @@ export function HeroSection() {
               <div className="text-xl font-bold text-primary sm:text-2xl md:text-3xl">
                 {stat.value}
               </div>
-              <div className="text-xs text-muted-foreground sm:text-sm">{stat.label}</div>
+              <div className="text-xs text-muted-foreground sm:text-sm">
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>

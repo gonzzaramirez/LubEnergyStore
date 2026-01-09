@@ -8,14 +8,7 @@ import { Product } from "@/lib/types";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  Plus,
-  Minus,
-  Check,
-  ShoppingCart,
-  ShoppingBag,
-} from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -119,7 +112,7 @@ export default function ProductDetailPage() {
         <Header />
         <CartSidebar />
         <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-12 sm:px-6 sm:pt-24 sm:pb-16 md:pt-28 md:pb-20 lg:pb-24 ">
-          <Link href="/#productos">
+          <Link href="/productos">
             <Button variant="ghost" className="mb-6 cursor-pointer sm:mb-8">
               <ArrowLeft className="mr-2 h-4 w-4" />
               <span className="text-sm font-medium sm:text-base">Volver</span>
@@ -140,7 +133,7 @@ export default function ProductDetailPage() {
           <h1 className="mb-4 text-xl font-bold sm:text-2xl md:text-3xl">
             Producto no encontrado
           </h1>
-          <Link href="/#productos">
+          <Link href="/productos">
             <Button className="text-sm sm:text-base">Volver a productos</Button>
           </Link>
         </div>
@@ -157,7 +150,7 @@ export default function ProductDetailPage() {
       <CartSidebar />
       <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-6 sm:px-6 sm:pt-24 sm:pb-8 md:pt-28 md:pb-12 lg:pb-16">
         {/* Back Button */}
-        <Link href="/#productos">
+        <Link href="/productos">
           <Button variant="ghost" className="mb-4 cursor-pointer  sm:mb-6">
             <ArrowLeft className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium sm:text-base">Volver</span>

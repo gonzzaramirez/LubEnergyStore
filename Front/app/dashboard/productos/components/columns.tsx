@@ -133,6 +133,19 @@ export const getColumns = ({
     size: 100,
   },
   {
+    accessorKey: "isFeatured",
+    header: "Destacado",
+    cell: ({ row }) => {
+      const isFeatured = row.getValue("isFeatured") as boolean;
+      return (
+        <Badge variant={isFeatured ? "default" : "secondary"}>
+          {isFeatured ? "Destacado" : "No"}
+        </Badge>
+      );
+    },
+    size: 100,
+  },
+  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {

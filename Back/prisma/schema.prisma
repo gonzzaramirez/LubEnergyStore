@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 // --- ENUMS ---
 // Prisma maneja los enums nativos de Postgres
 enum Role {
@@ -21,50 +22,68 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  SHIPPED
-  DELIVERED
-  CANCELLED
+  PENDING    // Pedido recibido, esperando confirmación de pago
+  CONFIRMED  // Pago confirmado por admin
+  SHIPPED    // Enviado con código de seguimiento
+  DELIVERED  // Entregado
+  CANCELLED  // Cancelado
 
-  @@map("order_status") // Nombre en base de datos
+  @@map("order_status")
 }
 
 // --- MODELOS (TABLAS) ---
 
 model User {
-  id           String    @id @default(uuid()) // UUID v4
+  id           String    @id @default(uuid())
   firstName    String    @map("first_name") @db.VarChar(100)
   lastName     String    @map("last_name") @db.VarChar(100)
   email        String    @unique @db.VarChar(255)
   phone        String    @db.VarChar(20)
-  passwordHash String?   @map("password_hash") // Opcional (Google Login)
+  passwordHash String?   @map("password_hash")
   googleId     String?   @map("google_id")
   role         Role      @default(CUSTOMER)
   isActive     Boolean   @default(true) @map("is_active")
-  
-  // Timestamps
+
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at") // Soft Delete
+  deletedAt    DateTime? @map("deleted_at")
 
-  // Relaciones
   orders       Order[]
 
-  @@map("users") // Nombre real de la tabla en Postgres
+  @@map("users")
+}
+
+// Cliente invitado (checkout sin registro)
+model GuestCustomer {
+  id        String   @id @default(uuid())
+  firstName String   @map("first_name") @db.VarChar(100)
+  lastName  String   @map("last_name") @db.VarChar(100)
+  email     String   @db.VarChar(255)
+  phone     String   @db.VarChar(20)
+  dni       String   @db.VarChar(15)
+
+  // Dirección de envío
+  street     String   @db.VarChar(200) // Calle y número
+  apartment  String?  @db.VarChar(50)  // Piso/Depto (opcional)
+  city       String   @db.VarChar(100) // Localidad
+  province   String   @db.VarChar(100) // Provincia
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  orders     Order[]
+
+  @@map("guest_customers")
 }
 
 model Category {
-  id          Int       @id @default(autoincrement()) // Serial
+  id          Int       @id @default(autoincrement())
   name        String    @db.VarChar(100)
   description String?   @db.Text
-  
-  // Timestamps
+
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  // Relaciones
   products    Product[]
 
   @@map("categories")
@@ -77,56 +96,111 @@ model Product {
   slug          String    @unique @db.VarChar(150)
   sku           String    @unique @db.VarChar(50)
   description   String    @db.Text
-  price         Int       // Centavos (Integer)
+  price         Int       // Precio en pesos argentinos
   stockQuantity Int       @default(0) @map("stock_quantity")
   imageUrl      String?   @map("image_url")
   isActive      Boolean   @default(true) @map("is_active")
+  isFeatured    Boolean   @default(false) @map("is_featured")
 
-  // Timestamps
+  // Promociones por producto
+  discountPercent       Int?      @map("discount_percent")        // % de descuento (ej: 20 = 20% off)
+  discountStartDate     DateTime? @map("discount_start_date")     // Inicio de la promo
+  discountEndDate       DateTime? @map("discount_end_date")       // Fin de la promo
+
+  // Descuento por cantidad (específico del producto)
+  minQuantityDiscount       Int?  @map("min_quantity_discount")        // Cantidad mínima (ej: 2)
+  quantityDiscountPercent   Int?  @map("quantity_discount_percent")    // % descuento por cantidad
+
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")
 
-  // Relaciones
   category      Category? @relation(fields: [categoryId], references: [id])
   orderItems    OrderItem[]
+  priceHistory  PriceHistory[]
 
   @@map("products")
 }
 
-model Order {
-  id           String      @id @default(uuid())
-  userId       String      @map("user_id")
-  status       OrderStatus @default(PENDING)
-  totalAmount  Int         @map("total_amount") // Centavos
+// Historial de cambios de precio
+model PriceHistory {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  oldPrice      Int      @map("old_price")      // Precio anterior
+  newPrice      Int      @map("new_price")      // Precio nuevo
+  changePercent Float    @map("change_percent") // % de cambio (positivo = aumento, negativo = baja)
+  reason        String   @db.VarChar(200)       // "Aumento masivo 10%", "Edición manual", etc.
   
-  // Datos Logísticos (Manuales por Admin)
-  trackingCode String?     @map("tracking_code")
-  courierName  String?     @map("courier_name")
-  adminNotes   String?     @map("admin_notes") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("price_history")
+}
+
+// Códigos de descuento (aplican al total del carrito)
+model DiscountCode {
+  id              String    @id @default(uuid())
+  code            String    @unique @db.VarChar(50)  // Código único (ej: "VERANO20")
+  description     String?   @db.VarChar(200)         // Descripción interna
+  discountPercent Int       @map("discount_percent") // % de descuento
+  
+  isActive        Boolean   @default(true) @map("is_active")
+  validFrom       DateTime? @map("valid_from")       // Fecha inicio validez
+  validUntil      DateTime? @map("valid_until")      // Fecha fin validez
+  
+  usageLimit      Int?      @map("usage_limit")      // Límite de usos (null = ilimitado)
+  usageCount      Int       @default(0) @map("usage_count") // Veces usado
+  
+  minOrderAmount  Int?      @map("min_order_amount") // Monto mínimo de pedido (opcional)
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("discount_codes")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String?     @map("user_id")           // Usuario registrado (opcional)
+  guestCustomerId String?     @map("guest_customer_id") // Cliente invitado (opcional)
+  status          OrderStatus @default(PENDING)
+  totalAmount     Int         @map("total_amount")      // Centavos
+
+  // Datos del pedido
+  customerNotes   String?     @map("customer_notes") @db.Text // Notas del cliente
+
+  // Datos Logísticos (Admin)
+  trackingCode    String?     @map("tracking_code")
+  courierName     String?     @map("courier_name") @db.VarChar(100)
+  adminNotes      String?     @map("admin_notes") @db.Text
 
   // Timestamps
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  deletedAt    DateTime?   @map("deleted_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  confirmedAt     DateTime?   @map("confirmed_at")  // Fecha de confirmación de pago
+  shippedAt       DateTime?   @map("shipped_at")    // Fecha de envío
+  deliveredAt     DateTime?   @map("delivered_at")  // Fecha de entrega
+  deletedAt       DateTime?   @map("deleted_at")
 
   // Relaciones
-  user         User        @relation(fields: [userId], references: [id])
-  items        OrderItem[]
+  user            User?          @relation(fields: [userId], references: [id])
+  guestCustomer   GuestCustomer? @relation(fields: [guestCustomerId], references: [id])
+  items           OrderItem[]
 
   @@map("orders")
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String  @map("order_id")
-  productId String  @map("product_id")
-  quantity  Int
-  unitPrice Int     @map("unit_price") // Precio congelado al momento de compra
+  id          String  @id @default(uuid())
+  orderId     String  @map("order_id")
+  productId   String  @map("product_id")
+  quantity    Int
+  unitPrice   Int     @map("unit_price")  // Precio congelado al momento de compra
+  productName String  @map("product_name") @db.VarChar(150) // Nombre congelado
 
-  // Relaciones
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }

@@ -54,13 +54,12 @@ export function Header() {
 
         {/* Navigation - Centrado */}
         <nav className="absolute left-1/2 hidden -translate-x-1/2 transform items-center gap-6 md:flex md:gap-8 lg:gap-10">
-          <a
-            href={isHomePage ? "#productos" : "/#productos"}
-            onClick={(e) => handleNavClick(e, "productos")}
+          <Link
+            href="/productos"
             className="text-xs text-muted-foreground transition-colors hover:text-primary sm:text-sm"
           >
             Productos
-          </a>
+          </Link>
           <a
             href={isHomePage ? "#categorias" : "/#categorias"}
             onClick={(e) => handleNavClick(e, "categorias")}

@@ -1,25 +1,35 @@
 FROM node:22.12.0-alpine
 
+# Instalar OpenSSL
 RUN apk -U add openssl
 
 WORKDIR /app
 
 COPY . .
 
-# --- CAMBIO IMPORTANTE ---
-# Forzamos la instalación de dependencias de desarrollo (Nest CLI)
-# aunque NODE_ENV esté en production.
-RUN npm install --include=dev
+# --- TRUCO ---
+# 1. Forzamos momentáneamente el modo desarrollo para asegurar que se instalen 
+#    las herramientas de construcción (Nest CLI).
+ENV NODE_ENV=development
 
-# Generamos Prisma Client
+# 2. Instalamos TODO (incluyendo devDependencies)
+RUN npm install
+
+# 3. Generamos Prisma
 RUN npx prisma generate
 
-# Ahora sí, el build funcionará porque tiene la Nest CLI
+# 4. Construimos la aplicación
 RUN npm run build
 
-# Opcional: Verificamos que se creó la carpeta (esto saldrá en el log si falla)
-RUN ls -la dist
+# --- DEBUG ---
+# Esto imprimirá en el log de construcción qué hay dentro de la carpeta dist.
+# Si la carpeta está vacía, el deploy fallará aquí y nos avisará.
+RUN echo "Verificando carpeta dist..." && ls -la dist || echo "LA CARPETA DIST NO EXISTE O ESTA VACIA"
+
+# 5. Ahora sí, pasamos a modo producción para ejecutar
+ENV NODE_ENV=production
 
 EXPOSE 3080
 
-CMD ["npm", "run", "start:prod"]
+# Usamos 'node dist/main' directo para evitar intermediarios
+CMD ["node", "dist/main"]

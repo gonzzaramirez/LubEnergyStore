@@ -40,6 +40,18 @@ export async function getProduct(id: string): Promise<Product> {
   return response.json();
 }
 
+export async function getProductBySlug(slug: string): Promise<Product> {
+  const response = await fetch(`${API_URL}/products/slug/${slug}`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener el producto");
+  }
+
+  return response.json();
+}
+
 // --- RUTAS PROTEGIDAS (requieren auth) ---
 
 export async function getDeletedProducts(): Promise<Product[]> {

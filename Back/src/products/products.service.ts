@@ -56,6 +56,19 @@ export class ProductsService {
     return product;
   }
 
+  async findOneBySlug(slug: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { slug, deletedAt: null },
+      include: { category: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Producto con slug ${slug} no encontrado`);
+    }
+
+    return product;
+  }
+
   async update(id: string, updateProductDto: UpdateProductDto) {
     const existingProduct = await this.findOne(id);
 

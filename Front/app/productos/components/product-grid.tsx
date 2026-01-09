@@ -17,6 +17,7 @@ import {
 // Tipo para el producto adaptado al formato del componente
 interface DisplayProduct {
   id: string;
+  slug: string;
   name: string;
   description: string;
   price: number; // precio en pesos (no centavos)
@@ -66,6 +67,7 @@ export function ProductGrid({
           .filter((p: APIProduct) => p.isActive !== false) // Solo productos activos
           .map((p: APIProduct) => ({
             id: p.id,
+            slug: p.slug,
             name: p.name,
             description: p.description,
             price: p.price, // Precio ya está en pesos argentinos

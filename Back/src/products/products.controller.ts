@@ -20,6 +20,12 @@ export class ProductsController {
   }
 
   @Public()
+  @Get('slug/:slug')
+  findOneBySlug(@Param('slug') slug: string) {
+    return this.productsService.findOneBySlug(slug);
+  }
+
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);

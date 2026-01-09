@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface DisplayProduct {
   id: string;
+  slug: string;
   name: string;
   description: string;
   price: number;
@@ -97,7 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleCardClick = () => {
-    router.push(`/productos/${product.id}`);
+    router.push(`/productos/${product.slug}`);
   };
 
   return (
@@ -184,7 +185,7 @@ export function ProductCard({ product }: ProductCardProps) {
             Agregar al carrito
           </Button>
           <Link
-            href={`/productos/${product.id}`}
+            href={`/productos/${product.slug}`}
             onClick={(e) => e.stopPropagation()}
             className={`group/link block transition-opacity duration-200 ${
               isHovered ? "opacity-100" : "opacity-0"

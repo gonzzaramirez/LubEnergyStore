@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getProduct } from "@/lib/api/product";
+import { getProductBySlug } from "@/lib/api/product";
 import { Product } from "@/lib/types";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
@@ -17,20 +17,20 @@ import { CartSidebar } from "@/components/cart-sidebar";
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const productId = params.id as string;
+  const productSlug = params.slug as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addItem, items, setIsOpen } = useCart();
 
-  const cartItem = items.find((item) => item.id === productId);
+  const cartItem = product ? items.find((item) => item.id === product.id) : null;
   const isInCart = !!cartItem;
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        const data = await getProduct(productId);
+        const data = await getProductBySlug(productSlug);
         setProduct(data);
       } catch (error) {
         console.error("Error al cargar el producto:", error);
@@ -41,10 +41,10 @@ export default function ProductDetailPage() {
       }
     };
 
-    if (productId) {
+    if (productSlug) {
       fetchProduct();
     }
-  }, [productId, router]);
+  }, [productSlug, router]);
 
   const handleAddToCart = () => {
     if (!product) return;

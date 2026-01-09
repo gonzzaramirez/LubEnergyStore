@@ -28,20 +28,46 @@ export class AuthController {
     const currentHost = request.get('host')?.split(':')[0] || '';
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
     
-    // Si los hosts son diferentes (incluso subdominios), necesitamos sameSite: 'none'
-    // Ejemplo: tudominio.com vs api.tudominio.com
-    const isCrossDomain = isProduction && frontendUrl && currentHost && frontendHost && currentHost !== frontendHost;
-
-    // Configurar cookies httpOnly
-    // En producción con subdominios diferentes, usar 'none', sino 'lax'
-    const sameSiteValue = (isCrossDomain ? 'none' : 'lax') as 'none' | 'lax' | 'strict';
+    // Verificar si son subdominios del mismo dominio base
+    // Ejemplo: test.farmaciadeturnomc.site y api.farmaciadeturnomc.site comparten el dominio base
+    let domain: string | undefined = undefined;
+    let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
     
-    const cookieOptions = {
+    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+      // Extraer el dominio base (últimas 2 partes del hostname)
+      const currentParts = currentHost.split('.');
+      const frontendParts = frontendHost.split('.');
+      
+      // Si ambos tienen al menos 2 partes, verificar si comparten el dominio base
+      if (currentParts.length >= 2 && frontendParts.length >= 2) {
+        const currentBase = currentParts.slice(-2).join('.');
+        const frontendBase = frontendParts.slice(-2).join('.');
+        
+        // Si comparten el dominio base, son same-site (usar 'lax' con dominio compartido)
+        if (currentBase === frontendBase) {
+          domain = `.${currentBase}`;
+          sameSiteValue = 'lax';
+        } else {
+          // Dominios completamente diferentes, necesitamos 'none'
+          sameSiteValue = 'none';
+        }
+      } else {
+        // No podemos determinar, usar 'none' por seguridad
+        sameSiteValue = 'none';
+      }
+    }
+    
+    const cookieOptions: any = {
       httpOnly: true,
       secure: isSecure,
       sameSite: sameSiteValue,
       path: '/',
     };
+
+    // Agregar domain si es para subdominios del mismo dominio base
+    if (domain) {
+      cookieOptions.domain = domain;
+    }
 
     response.cookie('access_token', result.accessToken, {
       ...cookieOptions,
@@ -51,6 +77,18 @@ export class AuthController {
     response.cookie('refresh_token', result.refreshToken, {
       ...cookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+    });
+    
+    // Log adicional para debug
+    console.log('🍪 Cookies enviadas con opciones:', {
+      domain: cookieOptions.domain || 'no domain (default)',
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      httpOnly: cookieOptions.httpOnly,
+      path: cookieOptions.path,
+      isCrossDomain: currentHost !== frontendHost,
+      currentHost,
+      frontendHost,
     });
 
     // Log para debug (siempre, para poder ver en producción)
@@ -91,17 +129,43 @@ export class AuthController {
     const frontendUrl = process.env.FRONTEND_URL || '';
     const currentHost = request.get('host')?.split(':')[0] || '';
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
-    const isCrossDomain = isProduction && frontendUrl && currentHost && frontendHost && currentHost !== frontendHost;
-    const sameSiteValue = (isCrossDomain ? 'none' : 'lax') as 'none' | 'lax' | 'strict';
-
-    // Actualizar cookie del access token
-    response.cookie('access_token', result.accessToken, {
+    
+    let domain: string | undefined = undefined;
+    let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
+    
+    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+      const currentParts = currentHost.split('.');
+      const frontendParts = frontendHost.split('.');
+      
+      if (currentParts.length >= 2 && frontendParts.length >= 2) {
+        const currentBase = currentParts.slice(-2).join('.');
+        const frontendBase = frontendParts.slice(-2).join('.');
+        
+        if (currentBase === frontendBase) {
+          domain = `.${currentBase}`;
+          sameSiteValue = 'lax';
+        } else {
+          sameSiteValue = 'none';
+        }
+      } else {
+        sameSiteValue = 'none';
+      }
+    }
+    
+    const cookieOptions: any = {
       httpOnly: true,
       secure: isSecure,
       sameSite: sameSiteValue,
       path: '/',
       maxAge: 60 * 60 * 1000,
-    });
+    };
+    
+    if (domain) {
+      cookieOptions.domain = domain;
+    }
+
+    // Actualizar cookie del access token
+    response.cookie('access_token', result.accessToken, cookieOptions);
 
     return { message: 'Token renovado' };
   }
@@ -118,21 +182,42 @@ export class AuthController {
     const frontendUrl = process.env.FRONTEND_URL || '';
     const currentHost = request.get('host')?.split(':')[0] || '';
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
-    const isCrossDomain = isProduction && frontendUrl && currentHost && frontendHost && currentHost !== frontendHost;
-    const sameSiteValue = (isCrossDomain ? 'none' : 'lax') as 'none' | 'lax' | 'strict';
     
-    response.clearCookie('access_token', { 
+    let domain: string | undefined = undefined;
+    let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
+    
+    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+      const currentParts = currentHost.split('.');
+      const frontendParts = frontendHost.split('.');
+      
+      if (currentParts.length >= 2 && frontendParts.length >= 2) {
+        const currentBase = currentParts.slice(-2).join('.');
+        const frontendBase = frontendParts.slice(-2).join('.');
+        
+        if (currentBase === frontendBase) {
+          domain = `.${currentBase}`;
+          sameSiteValue = 'lax';
+        } else {
+          sameSiteValue = 'none';
+        }
+      } else {
+        sameSiteValue = 'none';
+      }
+    }
+    
+    const clearOptions: any = {
       path: '/',
       httpOnly: true,
       secure: isSecure,
       sameSite: sameSiteValue,
-    });
-    response.clearCookie('refresh_token', { 
-      path: '/',
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: sameSiteValue,
-    });
+    };
+    
+    if (domain) {
+      clearOptions.domain = domain;
+    }
+    
+    response.clearCookie('access_token', clearOptions);
+    response.clearCookie('refresh_token', clearOptions);
 
     return { message: 'Sesión cerrada' };
   }

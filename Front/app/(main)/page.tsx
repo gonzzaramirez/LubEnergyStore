@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
+    <main id="main-content" className="min-h-screen bg-background">
       <HashScrollHandler />
       <Header />
       <HeroSection />
@@ -20,6 +20,7 @@ export default function Home() {
           <Button
             size="lg"
             className="rounded-full px-10 py-6 text-base font-bold green-glow transition-all hover:scale-105 cursor-pointer"
+            aria-label="Ver catálogo completo de productos"
           >
             Ver Catálogo Completo
           </Button>

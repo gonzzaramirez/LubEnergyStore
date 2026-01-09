@@ -1,42 +1,55 @@
-import { Instagram, Facebook, MessageCircleMore } from "lucide-react";
+import { Instagram, MessageCircleMore } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 sm:py-5 md:py-3">
-        <div className="flex flex-col items-center gap-3 sm:gap-4">
+    <footer className="border-t border-border bg-card/50" role="contentinfo">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="flex flex-col items-center gap-4 sm:gap-6">
           {/* Logo Text */}
-          <div className="flex items-center">
-            <span className="text-xs font-bold text-foreground sm:text-sm md:text-base">
+          <Link
+            href="/"
+            className="flex items-center"
+            aria-label="LUB ENERGY - Ir al inicio"
+          >
+            <span className="text-sm font-bold text-foreground sm:text-base md:text-lg">
               LUB <span className="text-primary">ENERGY</span>
             </span>
-          </div>
+          </Link>
+
+          {/* Navigation Links */}
 
           {/* Social Icons */}
-          <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
+          <div
+            className="flex items-center gap-4 sm:gap-5"
+            role="list"
+            aria-label="Redes sociales"
+          >
             <a
-              href="#"
-              className="text-muted-foreground transition-colors hover:text-primary"
-              aria-label="Instagram"
+              href="https://www.instagram.com/lub_energy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+              aria-label="Síguenos en Instagram"
+              role="listitem"
             >
-              <Instagram className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-            </a>
-            <a
-              href="#"
-              className="text-muted-foreground transition-colors hover:text-primary"
-              aria-label="Facebook"
-            >
-              <Facebook className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <Instagram className="h-5 w-5" aria-hidden="true" />
             </a>
             <a
               href="https://wa.me/543795056878"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground transition-colors hover:text-primary"
-              aria-label="WhatsApp"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+              aria-label="Contactanos por WhatsApp"
+              role="listitem"
             >
-              <MessageCircleMore className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <MessageCircleMore className="h-5 w-5" aria-hidden="true" />
             </a>
+          </div>
+
+          {/* Copyright & Info */}
+          <div className="flex flex-col items-center gap-2 text-center text-xs text-muted-foreground sm:text-sm">
+            <p>Envíos a toda Argentina 🇦🇷</p>
           </div>
         </div>
       </div>

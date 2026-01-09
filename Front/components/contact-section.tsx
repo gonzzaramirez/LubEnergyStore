@@ -6,26 +6,25 @@ import {
   Mail,
   MapPin,
   Instagram,
-  Facebook,
   MessageCircleMore,
 } from "lucide-react";
 
 export function ContactSection() {
   const contactInfo = [
     {
-      icon: <Phone className="h-5 w-5 text-primary" />,
+      icon: <Phone className="h-5 w-5 text-primary" aria-hidden="true" />,
       label: "Teléfono",
       value: "+54 379 505-6878",
       href: "tel:+543795056878",
     },
     {
-      icon: <Mail className="h-5 w-5 text-primary" />,
+      icon: <Mail className="h-5 w-5 text-primary" aria-hidden="true" />,
       label: "Email",
       value: "Lubenergy1324@gmail.com",
       href: "mailto:Lubenergy1324@gmail.com",
     },
     {
-      icon: <MapPin className="h-5 w-5 text-primary" />,
+      icon: <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />,
       label: "Dirección",
       value: "Vicente Mendieta 453, Monte Caseros, Corrientes",
       href: "https://maps.app.goo.gl/kX8yQ1Y5Z7D2",
@@ -34,29 +33,28 @@ export function ContactSection() {
 
   const socialLinks = [
     {
-      icon: <Instagram className="h-6 w-6" />,
-      label: "Instagram",
+      icon: <Instagram className="h-6 w-6" aria-hidden="true" />,
+      label: "Síguenos en Instagram",
       href: "https://www.instagram.com/lub_energy/",
       target: "_blank",
     },
     {
-      icon: <Facebook className="h-6 w-6" />,
-      label: "Facebook",
-      href: "#",
-    },
-    {
-      icon: <MessageCircleMore className="h-6 w-6" />,
-      label: "WhatsApp",
+      icon: <MessageCircleMore className="h-6 w-6" aria-hidden="true" />,
+      label: "Contactanos por WhatsApp",
       href: "https://wa.me/543795056878",
       target: "_blank",
     },
   ];
 
   return (
-    <section id="contacto" className="relative overflow-hidden py-8 sm:py-8 ">
+    <section 
+      id="contacto" 
+      className="relative overflow-hidden py-12 sm:py-16"
+      aria-labelledby="contact-heading"
+    >
       {/* Background Effects similar to Hero */}
-      <div className="absolute inset-0 bg-linear-to-t from-primary/5 via-transparent to-transparent" />
-      <div className="absolute -right-24 bottom-0 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px]" />
+      <div className="absolute inset-0 bg-linear-to-t from-primary/5 via-transparent to-transparent" aria-hidden="true" />
+      <div className="absolute -right-24 bottom-0 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px]" aria-hidden="true" />
 
       {/* Grid Pattern */}
       <div
@@ -65,11 +63,13 @@ export function ContactSection() {
           backgroundImage: `linear-gradient(oklch(0.75 0.2 145) 1px, transparent 1px), linear-gradient(90deg, oklch(0.75 0.2 145) 1px, transparent 1px)`,
           backgroundSize: "50px 50px",
         }}
+        aria-hidden="true"
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 sm:mb-16">
           <motion.h2
+            id="contact-heading"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -89,24 +89,25 @@ export function ContactSection() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
           {/* Left: Google Maps */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
-            className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
+            className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg aspect-square lg:aspect-auto"
           >
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3446.5970203901875!2d-57.630734725131845!3d-30.24856624077106!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95acd63c3f1cc57b%3A0x432d01f648c3ae0b!2sVicente%20Mendieta%20453%2C%20W3232%20Monte%20Caseros%2C%20Corrientes!5e0!3m2!1ses!2sar!4v1767891632097!5m2!1ses!2sar"
               width="100%"
-              height="450"
-              style={{ border: 0 }}
+              height="100%"
+              style={{ border: 0, minHeight: "350px" }}
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="grayscale contrast-125 transition-all hover:grayscale-0"
+              className="grayscale contrast-125 transition-all hover:grayscale-0 h-full"
+              title="Ubicación de LUB ENERGY en Google Maps"
             />
           </motion.div>
 

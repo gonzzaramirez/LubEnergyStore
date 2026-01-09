@@ -81,6 +81,7 @@ export function HeroSection() {
     <section
       ref={heroRef}
       className="relative flex min-h-[85vh] items-center justify-center overflow-hidden pt-16 sm:min-h-[90vh] sm:pt-20"
+      aria-label="Bienvenido a LUB ENERGY - Suplementos Deportivos"
     >
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
@@ -118,11 +119,12 @@ export function HeroSection() {
         >
           <Image
             src="/oso2.png"
-            alt="oso logo"
+            alt=""
             width={250}
             height={280}
             className="h-auto w-[120px] cursor-grab active:cursor-grabbing opacity-80 sm:w-[150px] md:w-[180px] lg:w-[220px] xl:w-[250px]"
             draggable={false}
+            aria-hidden="true"
           />
         </motion.div>
         {/* Badge */}
@@ -190,14 +192,15 @@ export function HeroSection() {
               dragY2.set(0);
             }}
           >
-            <Image
-              src="/rayo2.png"
-              alt="rayo logo"
-              width={180}
-              height={280}
-              className="h-auto w-[80px] cursor-grab active:cursor-grabbing opacity-80 sm:w-[100px] md:w-[130px] lg:w-[160px] xl:w-[180px]"
-              draggable={false}
-            />
+          <Image
+            src="/rayo2.png"
+            alt=""
+            width={180}
+            height={280}
+            className="h-auto w-[80px] cursor-grab active:cursor-grabbing opacity-80 sm:w-[100px] md:w-[130px] lg:w-[160px] xl:w-[180px]"
+            draggable={false}
+            aria-hidden="true"
+          />
           </motion.div>
           {[
             { value: "+100", label: "Ventas" },

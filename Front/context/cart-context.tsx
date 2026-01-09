@@ -28,19 +28,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [justAdded, setJustAdded] = useState<string | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
 
-  // Load cart from localStorage on mount
+  // Load cart from sessionStorage on mount (se limpia al cerrar pestaña)
   useEffect(() => {
-    const savedCart = localStorage.getItem("lub-energy-cart")
+    // Limpiar localStorage antiguo si existe
+    localStorage.removeItem("lub-energy-cart")
+    
+    const savedCart = sessionStorage.getItem("lub-energy-cart")
     if (savedCart) {
       setItems(JSON.parse(savedCart))
     }
     setIsHydrated(true)
   }, [])
 
-  // Save cart to localStorage on change
+  // Save cart to sessionStorage on change
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem("lub-energy-cart", JSON.stringify(items))
+      sessionStorage.setItem("lub-energy-cart", JSON.stringify(items))
     }
   }, [items, isHydrated])
 

@@ -136,6 +136,7 @@ export function ProductGrid({
     <section
       id="productos"
       className="relative py-8 sm:py-12 md:py-16 lg:py-20"
+      aria-labelledby="products-heading"
     >
       {/* Background Effects - Copiado del hero - Solo cuando no es featuredOnly */}
       {!featuredOnly && (
@@ -158,7 +159,10 @@ export function ProductGrid({
         {/* Section Header */}
         {showTitle && (
           <div className="mb-6 text-center sm:mb-8 md:mb-10">
-            <h2 className="mb-2 text-xl font-bold text-foreground sm:mb-3 sm:text-2xl md:text-3xl lg:text-4xl">
+            <h2 
+              id="products-heading"
+              className="mb-2 text-xl font-bold text-foreground sm:mb-3 sm:text-2xl md:text-3xl lg:text-4xl"
+            >
               {featuredOnly ? (
                 <>
                   Productos <span className="text-primary">Destacados</span>
@@ -180,9 +184,14 @@ export function ProductGrid({
         {/* Category Filter */}
         {showFilters && (
           <div className="mb-8 sm:mb-10 md:mb-12">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <div 
+              className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
+              role="group"
+              aria-label="Filtrar por categoría"
+            >
               <button
                 onClick={() => handleCategoryChange("all")}
+                aria-pressed={selectedCategory === "all"}
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm md:px-5 ${
                   selectedCategory === "all"
                     ? "bg-primary text-primary-foreground green-glow"
@@ -195,6 +204,7 @@ export function ProductGrid({
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
+                  aria-pressed={selectedCategory === category.id}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 sm:px-4 sm:py-2 sm:text-sm md:px-5 ${
                     selectedCategory === category.id
                       ? "bg-primary text-primary-foreground green-glow"
@@ -256,12 +266,41 @@ export function ProductGrid({
           </div>
         )}
 
+        {/* Loading State */}
+        {isLoading && (
+          <div 
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+            aria-busy="true"
+            aria-label="Cargando productos..."
+          >
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col overflow-hidden rounded-xl border border-border bg-card animate-pulse"
+              >
+                <div className="aspect-square bg-muted" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-full" />
+                  <div className="h-3 bg-muted rounded w-2/3" />
+                  <div className="h-6 bg-muted rounded w-1/3 mt-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Products Grid */}
         {!isLoading && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+          <div 
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+            role="list"
+            aria-label={`${filteredProducts.length} productos encontrados`}
+          >
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
+                role="listitem"
                 className="animate-in fade-in slide-in-from-bottom-4"
                 style={{
                   animationDelay: `${index * 50}ms`,
@@ -275,7 +314,7 @@ export function ProductGrid({
         )}
 
         {!isLoading && filteredProducts.length === 0 && (
-          <div className="py-8 text-center sm:py-12">
+          <div className="py-8 text-center sm:py-12" role="status">
             <p className="text-sm text-muted-foreground sm:text-base">
               No hay productos en esta categoría
             </p>

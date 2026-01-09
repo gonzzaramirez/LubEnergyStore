@@ -1,5 +1,6 @@
 import { getOrderPublic } from "@/lib/api/order";
 import { OrderStatus } from "@/lib/types";
+import { formatPrice } from "@/lib/products";
 import {
   Package,
   CheckCircle,
@@ -31,13 +32,6 @@ const statusIndex: Record<OrderStatus, number> = {
   DELIVERED: 3,
   CANCELLED: -1,
 };
-
-function formatPrice(cents: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(cents / 100);
-}
 
 function formatDate(dateString?: string): string {
   if (!dateString) return "";

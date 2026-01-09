@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Order, OrderStatus } from "@/lib/types";
+import { formatPrice } from "@/lib/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,13 +34,6 @@ const statusConfig: Record<
   DELIVERED: { label: "Entregado", variant: "default" },
   CANCELLED: { label: "Cancelado", variant: "destructive" },
 };
-
-function formatPrice(cents: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(cents / 100);
-}
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("es-AR", {

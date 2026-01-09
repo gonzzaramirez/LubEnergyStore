@@ -6,6 +6,7 @@ import { getColumns } from "./components/columns";
 import { OrderDetailDialog } from "./components/order-detail-dialog";
 import { TrackingDialog } from "./components/tracking-dialog";
 import { Order, OrderStatus, OrderStats } from "@/lib/types";
+import { formatPrice } from "@/lib/products";
 import {
   getOrders,
   getOrderStats,
@@ -33,13 +34,6 @@ import {
   XCircle,
   DollarSign,
 } from "lucide-react";
-
-function formatPrice(cents: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(cents / 100);
-}
 
 export default function PedidosPage() {
   const [orders, setOrders] = useState<Order[]>([]);

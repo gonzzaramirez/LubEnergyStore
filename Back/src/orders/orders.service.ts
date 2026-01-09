@@ -171,14 +171,63 @@ export class OrdersService {
       updateData.deliveredAt = new Date();
     }
 
-    const updatedOrder = await this.prisma.order.update({
-      where: { id },
-      data: updateData,
-      include: {
-        guestCustomer: true,
-        items: true,
-      },
-    });
+    // Si se confirma el pedido, usar transacción para reducir stock
+    let updatedOrder;
+    if (updateDto.status === OrderStatusUpdate.CONFIRMED && order.status === OrderStatus.PENDING) {
+      // Usar transacción para garantizar consistencia
+      updatedOrder = await this.prisma.$transaction(async (tx) => {
+        // 1. Reducir stock de cada producto
+        for (const item of order.items) {
+          // Verificar stock disponible
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stockQuantity: true, name: true },
+          });
+
+          if (!product) {
+            throw new BadRequestException(
+              `Producto ${item.productName} no encontrado`,
+            );
+          }
+
+          if (product.stockQuantity < item.quantity) {
+            throw new BadRequestException(
+              `Stock insuficiente para "${item.productName}". Disponible: ${product.stockQuantity}, Solicitado: ${item.quantity}`,
+            );
+          }
+
+          // Reducir stock
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stockQuantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+
+        // 2. Actualizar estado del pedido
+        return tx.order.update({
+          where: { id },
+          data: updateData,
+          include: {
+            guestCustomer: true,
+            items: true,
+          },
+        });
+      });
+    } else {
+      // Para otros estados, actualización normal
+      updatedOrder = await this.prisma.order.update({
+        where: { id },
+        data: updateData,
+        include: {
+          guestCustomer: true,
+          items: true,
+        },
+      });
+    }
 
     // Enviar email de confirmación cuando se confirma el pago
     if (updateDto.status === OrderStatusUpdate.CONFIRMED && updatedOrder.guestCustomer) {

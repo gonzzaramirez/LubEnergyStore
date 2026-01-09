@@ -1,6 +1,7 @@
 "use client";
 
 import { Order, OrderStatus } from "@/lib/types";
+import { formatPrice } from "@/lib/products";
 import {
   Dialog,
   DialogContent,
@@ -38,13 +39,6 @@ const statusConfig: Record<
   DELIVERED: { label: "Entregado", variant: "default", color: "text-green-700" },
   CANCELLED: { label: "Cancelado", variant: "destructive", color: "text-red-600" },
 };
-
-function formatPrice(cents: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(cents / 100);
-}
 
 function formatDate(dateString?: string): string {
   if (!dateString) return "-";

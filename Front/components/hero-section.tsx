@@ -157,7 +157,7 @@ export function HeroSection() {
               Ver productos
             </Button>
           </Link>
-          <Link href="/contacto">
+          <Link href="/#contacto">
             <Button
               size="lg"
               variant="outline"

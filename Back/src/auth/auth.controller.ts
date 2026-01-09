@@ -79,23 +79,14 @@ export class AuthController {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
     });
     
-    // Log adicional para debug
-    console.log('🍪 Cookies enviadas con opciones:', {
+    // Log adicional para debug (siempre visible en producción para monitoreo)
+    console.log('🍪 Cookies configuradas:', {
       domain: cookieOptions.domain || 'no domain (default)',
       secure: cookieOptions.secure,
       sameSite: cookieOptions.sameSite,
       httpOnly: cookieOptions.httpOnly,
       path: cookieOptions.path,
       isCrossDomain: currentHost !== frontendHost,
-      currentHost,
-      frontendHost,
-    });
-
-    // Log para debug (siempre, para poder ver en producción)
-    console.log('🍪 Cookies configuradas:', {
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      isCrossDomain,
       currentHost,
       frontendHost,
       frontendUrl,

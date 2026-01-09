@@ -5,7 +5,6 @@ import {
   Package,
   CheckCircle,
   Truck,
-  Home,
   Clock,
   XCircle,
   MapPin,
@@ -21,15 +20,13 @@ interface PageProps {
 const statusSteps = [
   { status: "PENDING", label: "Pedido recibido", icon: Clock },
   { status: "CONFIRMED", label: "Pago confirmado", icon: CheckCircle },
-  { status: "SHIPPED", label: "En camino", icon: Truck },
-  { status: "DELIVERED", label: "Entregado", icon: Home },
+  { status: "SHIPPED", label: "Enviado", icon: Truck },
 ];
 
 const statusIndex: Record<OrderStatus, number> = {
   PENDING: 0,
   CONFIRMED: 1,
   SHIPPED: 2,
-  DELIVERED: 3,
   CANCELLED: -1,
 };
 
@@ -171,13 +168,8 @@ export default async function OrderTrackingPage({ params }: PageProps) {
                 </p>
               )}
               {currentStep === 2 && (
-                <p className="text-muted-foreground">
-                  Tu pedido está en camino. ¡Pronto lo recibirás!
-                </p>
-              )}
-              {currentStep === 3 && (
                 <p className="text-green-600 font-medium">
-                  ¡Tu pedido fue entregado! Gracias por tu compra.
+                  ¡Tu pedido fue enviado! Podés seguirlo con el código de tracking.
                 </p>
               )}
             </div>

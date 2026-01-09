@@ -13,14 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Truck, Check, X, Package } from "lucide-react";
+import { MoreHorizontal, Eye, Truck, Check, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ColumnsProps {
   onView: (order: Order) => void;
   onConfirm: (order: Order) => void;
   onAddTracking: (order: Order) => void;
-  onMarkDelivered: (order: Order) => void;
   onCancel: (order: Order) => void;
 }
 
@@ -31,7 +30,6 @@ const statusConfig: Record<
   PENDING: { label: "Pendiente", variant: "outline" },
   CONFIRMED: { label: "Confirmado", variant: "default" },
   SHIPPED: { label: "Enviado", variant: "secondary" },
-  DELIVERED: { label: "Entregado", variant: "default" },
   CANCELLED: { label: "Cancelado", variant: "destructive" },
 };
 
@@ -49,7 +47,6 @@ export function getColumns({
   onView,
   onConfirm,
   onAddTracking,
-  onMarkDelivered,
   onCancel,
 }: ColumnsProps): ColumnDef<Order>[] {
   return [
@@ -177,13 +174,6 @@ export function getColumns({
                 <DropdownMenuItem onClick={() => onAddTracking(order)}>
                   <Truck className="mr-2 h-4 w-4 text-blue-600" />
                   Agregar tracking
-                </DropdownMenuItem>
-              )}
-
-              {status === "SHIPPED" && (
-                <DropdownMenuItem onClick={() => onMarkDelivered(order)}>
-                  <Package className="mr-2 h-4 w-4 text-green-600" />
-                  Marcar entregado
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

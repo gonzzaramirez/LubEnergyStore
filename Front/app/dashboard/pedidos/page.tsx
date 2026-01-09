@@ -30,7 +30,6 @@ import {
   Clock,
   CheckCircle,
   Truck,
-  Package,
   XCircle,
   DollarSign,
 } from "lucide-react";
@@ -50,9 +49,6 @@ export default function PedidosPage() {
 
   const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
-
-  const [deliveringOrder, setDeliveringOrder] = useState<Order | null>(null);
-  const [deliverDialogOpen, setDeliverDialogOpen] = useState(false);
 
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -125,26 +121,6 @@ export default function PedidosPage() {
     }
   };
 
-  const handleMarkDelivered = (order: Order) => {
-    setDeliveringOrder(order);
-    setDeliverDialogOpen(true);
-  };
-
-  const confirmDelivered = async () => {
-    if (!deliveringOrder) return;
-
-    try {
-      await updateOrderStatus(deliveringOrder.id, "DELIVERED");
-      toast.success("Pedido marcado como entregado");
-      fetchData();
-    } catch (error) {
-      toast.error("Error al marcar como entregado");
-    } finally {
-      setDeliverDialogOpen(false);
-      setDeliveringOrder(null);
-    }
-  };
-
   const handleCancel = (order: Order) => {
     setCancellingOrder(order);
     setCancelDialogOpen(true);
@@ -169,7 +145,6 @@ export default function PedidosPage() {
     onView: handleView,
     onConfirm: handleConfirm,
     onAddTracking: handleAddTracking,
-    onMarkDelivered: handleMarkDelivered,
     onCancel: handleCancel,
   });
 
@@ -184,7 +159,7 @@ export default function PedidosPage() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
@@ -210,15 +185,6 @@ export default function PedidosPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.shipped}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Entregados</CardTitle>
-              <Package className="h-4 w-4 text-green-700" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.delivered}</div>
             </CardContent>
           </Card>
           <Card>
@@ -251,7 +217,6 @@ export default function PedidosPage() {
           <TabsTrigger value="PENDING">Pendientes</TabsTrigger>
           <TabsTrigger value="CONFIRMED">Confirmados</TabsTrigger>
           <TabsTrigger value="SHIPPED">Enviados</TabsTrigger>
-          <TabsTrigger value="DELIVERED">Entregados</TabsTrigger>
           <TabsTrigger value="CANCELLED">Cancelados</TabsTrigger>
         </TabsList>
 
@@ -298,28 +263,6 @@ export default function PedidosPage() {
               className="bg-green-600 hover:bg-green-700"
             >
               Confirmar pago
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Marcar entregado */}
-      <AlertDialog open={deliverDialogOpen} onOpenChange={setDeliverDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Marcar como entregado?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción marcará el pedido #
-              {deliveringOrder?.id.slice(0, 8).toUpperCase()} como entregado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelivered}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Marcar entregado
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

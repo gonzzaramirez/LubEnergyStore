@@ -36,16 +36,9 @@ export class EmailService {
   private readonly fromEmail: string;
   private readonly storeName = 'LUB ENERGY';
   
-  // Colores de marca
-  private readonly colors = {
-    background: '#000000',      // Fondo principal
-    card: '#121212',            // Fondo de contenedores
-    text: '#ffffff',            // Texto principal
-    textMuted: '#a1a1aa',       // Texto secundario (gris claro)
-    border: '#27272a',          // Bordes sutiles
-    primary: '#22c55e',         // VERDE LUB ENERGY (ajustable a tu tono exacto)
-    primaryText: '#000000',     // Texto sobre el verde (para botones)
-  };
+  // Color primario VERDE (Ajustable a tu tono específico)
+  private readonly brandColor = '#10b981'; 
+  private readonly darkColor = '#111111';
 
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
@@ -56,154 +49,152 @@ export class EmailService {
     this.fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
   }
 
+  // Precios sin formateo complejo, solo matemática básica y signo $
   private formatPrice(cents: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(cents / 100);
+    return `$${cents / 100}`;
   }
 
   private getBaseStyles(): string {
     return `
       <style>
-        /* Reset & Base */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+          font-family: 'Inter', sans-serif; 
           margin: 0; 
           padding: 0; 
-          background-color: ${this.colors.background}; 
-          color: ${this.colors.text};
+          background-color: #f4f4f5; 
           -webkit-font-smoothing: antialiased;
         }
-        
-        /* Layout */
-        .wrapper { width: 100%; background-color: ${this.colors.background}; padding: 40px 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f5; padding-bottom: 40px; }
         .container { 
           max-width: 600px; 
           margin: 0 auto; 
-          background-color: ${this.colors.card}; 
-          border-radius: 16px; 
-          overflow: hidden; 
-          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-          border: 1px solid ${this.colors.border};
+          background-color: #ffffff; 
+          border-radius: 16px; /* Más redondeado */
+          overflow: hidden;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
         
-        /* Header */
-        .header { 
-          padding: 40px 40px 20px 40px; 
-          text-align: center; 
-          border-bottom: 1px solid ${this.colors.border};
-        }
-        .brand { 
-          font-size: 24px; 
-          font-weight: 800; 
-          color: ${this.colors.text}; 
-          letter-spacing: -0.5px;
-          text-transform: uppercase;
-        }
-        .brand span { color: ${this.colors.primary}; }
+        /* HEADER */
+        .header { background-color: ${this.darkColor}; padding: 40px 0; text-align: center; }
+        .logo-text { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -1px; margin: 0; text-transform: uppercase; }
+        .logo-accent { color: ${this.brandColor}; }
 
-        /* Content */
-        .content { padding: 40px; }
+        /* CONTENT */
+        .content { padding: 40px 32px; }
+        .h1 { color: ${this.darkColor}; font-size: 22px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -0.5px; }
+        .text { color: #52525b; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; }
         
-        /* Typography */
-        h1 { margin: 0 0 15px 0; font-size: 28px; font-weight: 700; color: ${this.colors.text}; letter-spacing: -0.5px; text-align: center; }
-        h2 { margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: ${this.colors.text}; }
-        h3 { margin: 25px 0 15px 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: ${this.colors.textMuted}; }
-        p { margin: 0 0 10px 0; font-size: 15px; line-height: 1.6; color: ${this.colors.textMuted}; }
-        
-        /* Components */
-        .status-badge { 
+        /* STATUS PILL */
+        .status-pill { 
           display: inline-block; 
           padding: 8px 16px; 
-          background-color: rgba(34, 197, 94, 0.1); 
-          color: ${this.colors.primary}; 
-          border: 1px solid ${this.colors.primary};
-          border-radius: 50px; 
+          border-radius: 100px; 
           font-size: 13px; 
           font-weight: 600; 
-          letter-spacing: 0.5px;
-          margin-bottom: 20px;
-        }
-        
-        .divider { height: 1px; background-color: ${this.colors.border}; margin: 30px 0; border: none; }
-        
-        /* Data Display */
-        .info-grid { display: table; width: 100%; margin-bottom: 20px; }
-        .info-col { display: table-cell; vertical-align: top; width: 50%; }
-        
-        /* Items Table */
-        .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .items-table th { 
-          text-align: left; 
-          padding: 10px 0; 
-          color: ${this.colors.textMuted}; 
-          font-size: 12px; 
           text-transform: uppercase; 
-          font-weight: 600;
-          border-bottom: 1px solid ${this.colors.border};
+          letter-spacing: 0.5px;
+          margin-bottom: 24px;
         }
-        .items-table td { 
-          padding: 15px 0; 
-          border-bottom: 1px solid ${this.colors.border}; 
-          color: ${this.colors.text};
-          font-size: 15px;
-        }
-        .items-table .price { text-align: right; font-weight: 600; color: ${this.colors.text}; }
-        .total-section { margin-top: 20px; text-align: right; }
-        .total-label { color: ${this.colors.textMuted}; margin-right: 15px; font-size: 14px; }
-        .total-amount { font-size: 24px; font-weight: 700; color: ${this.colors.primary}; }
+        /* Verde suave para fondo, verde oscuro para texto */
+        .status-confirmed { background-color: #ecfdf5; color: #047857; border: 1px solid #d1fae5; }
+        .status-shipped { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
 
-        /* Tracking Box */
-        .tracking-box { 
-          background-color: rgba(255, 255, 255, 0.05); 
-          border: 1px solid ${this.colors.border};
-          border-radius: 12px; 
-          padding: 25px; 
-          text-align: center; 
-          margin: 30px 0; 
-        }
-        .tracking-code { 
-          font-family: monospace; 
-          font-size: 22px; 
-          color: ${this.colors.text}; 
-          background: rgba(0,0,0,0.3);
-          padding: 10px 20px;
-          border-radius: 8px;
-          display: inline-block;
-          margin: 10px 0;
-          letter-spacing: 2px;
-        }
-
-        /* Button */
-        .btn { 
-          display: block; 
-          width: 100%;
-          padding: 16px 0; 
-          background-color: ${this.colors.primary}; 
-          color: ${this.colors.primaryText}; 
-          text-decoration: none; 
-          border-radius: 12px; 
-          font-weight: 700; 
-          text-align: center; 
-          font-size: 16px;
-          transition: opacity 0.2s;
-        }
-        .btn:hover { opacity: 0.9; }
+        /* ITEMS TABLE */
+        .items-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 24px 0; }
+        .items-table th { text-align: left; color: #a1a1aa; font-size: 12px; font-weight: 600; text-transform: uppercase; padding-bottom: 16px; border-bottom: 1px solid #f4f4f5; }
+        .items-table td { padding: 16px 0; border-bottom: 1px solid #f4f4f5; color: ${this.darkColor}; font-size: 14px; font-weight: 500; }
+        .items-table td.price { text-align: right; white-space: nowrap; }
+        .items-table td.qty { text-align: center; color: #71717a; font-weight: 400; }
         
-        /* Footer */
-        .footer { 
-          padding: 30px; 
-          text-align: center; 
-          font-size: 13px; 
-          color: ${this.colors.textMuted}; 
-          background-color: #000000;
-          border-top: 1px solid ${this.colors.border};
+        /* TOTALS */
+        .total-section { margin-top: 20px; text-align: right; padding-top: 20px; }
+        .total-label { color: #71717a; font-size: 14px; margin-right: 12px; }
+        .total-amount { color: ${this.darkColor}; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+
+        /* SHIPPING INFO */
+        .info-card { background-color: #fafafa; border-radius: 12px; padding: 24px; margin-top: 32px; border: 1px solid #f4f4f5; }
+        .info-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin: 0 0 12px 0; letter-spacing: 0.5px; }
+        .info-text { font-size: 14px; color: ${this.darkColor}; margin: 4px 0; font-weight: 500; }
+        .info-sub { font-size: 13px; color: #71717a; font-weight: 400; }
+
+        /* BUTTONS - Rediseñado */
+        .btn-container { text-align: center; margin-top: 40px; margin-bottom: 10px; }
+        .btn { 
+          background-color: ${this.brandColor}; 
+          color: #ffffff; /* Texto blanco para mejor contraste en botón sólido */
+          padding: 18px 40px; 
+          border-radius: 12px; 
+          text-decoration: none; 
+          font-weight: 600; 
+          font-size: 16px; 
+          display: inline-block;
+          /* Sombra suave coloreada */
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
+          transition: all 0.2s;
+          border: 1px solid transparent;
         }
-        .footer a { color: ${this.colors.textMuted}; text-decoration: underline; }
+        .btn:hover {
+          opacity: 0.95;
+          transform: translateY(-1px);
+        }
+        
+        /* FOOTER */
+        .footer { background-color: #f9fafb; padding: 40px 30px; text-align: center; border-top: 1px solid #f4f4f5; }
+        .footer-text { color: #a1a1aa; font-size: 13px; line-height: 1.5; margin: 0; }
+        .legal-disclaimer { 
+          margin-top: 24px; 
+          padding-top: 24px; 
+          border-top: 1px dashed #e4e4e7; 
+          color: #d4d4d8; 
+          font-size: 11px; 
+          text-align: center;
+        }
+        .wp-link { 
+            color: ${this.darkColor}; 
+            background: #ffffff;
+            border: 1px solid #e4e4e7;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 14px;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-top: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
       </style>
+    `;
+  }
+
+  private generateHeader(): string {
+    return `
+      <div class="header">
+        <h1 class="logo-text">Lub <span class="logo-accent">Energy</span></h1>
+      </div>
+    `;
+  }
+
+  private generateFooter(whatsappNumber: string = '5491112345678'): string {
+    return `
+      <div class="footer">
+        <p class="footer-text">¿Necesitás ayuda con tu pedido?</p>
+        
+        <a href="https://wa.me/${whatsappNumber}" class="wp-link">
+          💬 Contactar por WhatsApp
+        </a>
+        
+        <p class="footer-text" style="margin-top: 30px; font-size: 12px;">
+          © ${new Date().getFullYear()} ${this.storeName}.
+        </p>
+
+        <div class="legal-disclaimer">
+          Este correo electrónico es un comprobante informativo de su pedido y no tiene validez como factura legal ni documento fiscal.
+        </div>
+      </div>
     `;
   }
 
@@ -212,10 +203,8 @@ export class EmailService {
       .map(
         (item) => `
         <tr>
-          <td>
-            <div style="font-weight: 500; color: #fff;">${item.productName}</div>
-            <div style="font-size: 13px; color: #a1a1aa;">Cant: ${item.quantity}</div>
-          </td>
+          <td>${item.productName}</td>
+          <td class="qty">x${item.quantity}</td>
           <td class="price">${this.formatPrice(item.unitPrice * item.quantity)}</td>
         </tr>
       `,
@@ -227,6 +216,7 @@ export class EmailService {
         <thead>
           <tr>
             <th>Producto</th>
+            <th style="text-align: center;">Cant.</th>
             <th style="text-align: right;">Total</th>
           </tr>
         </thead>
@@ -234,29 +224,6 @@ export class EmailService {
           ${rows}
         </tbody>
       </table>
-    `;
-  }
-
-  private generateCustomerInfo(customer: CustomerData): string {
-    const address = customer.apartment
-      ? `${customer.street}, ${customer.apartment}`
-      : customer.street;
-
-    return `
-      <div class="info-grid">
-        <div class="info-col">
-          <h3>Envío a</h3>
-          <p style="color: #ffffff; font-weight: 500;">${customer.firstName} ${customer.lastName}</p>
-          <p>${address}</p>
-          <p>${customer.city}, ${customer.province}</p>
-        </div>
-        <div class="info-col">
-          <h3>Contacto</h3>
-          <p>${customer.email}</p>
-          <p>${customer.phone}</p>
-          <p>DNI: ${customer.dni}</p>
-        </div>
-      </div>
     `;
   }
 
@@ -272,39 +239,35 @@ export class EmailService {
       <body>
         <div class="wrapper">
           <div class="container">
-            <div class="header">
-              <div class="brand">LUB <span>ENERGY</span></div>
-            </div>
+            ${this.generateHeader()}
             
             <div class="content">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <div class="status-badge">✓ PAGO EXITOSO</div>
-                <h1>¡Gracias, ${data.customer.firstName}!</h1>
-                <p>Tu pedido ha sido confirmado y estamos preparándolo.</p>
-                <p style="font-size: 13px; margin-top: 5px;">Orden #${data.orderId.slice(0, 8).toUpperCase()}</p>
+              <div style="text-align: center;">
+                <span class="status-pill status-confirmed">Pago Confirmado</span>
+                <h2 class="h1">¡Gracias, ${data.customer.firstName}!</h2>
+                <p class="text">Recibimos tu pago correctamente. Estamos preparando tu pedido #${data.orderId.slice(0, 8).toUpperCase()}.</p>
               </div>
 
-              <hr class="divider">
-              
-              ${this.generateCustomerInfo(data.customer)}
-              
-              <h3>Resumen de compra</h3>
               ${this.generateItemsTable(data.items)}
               
               <div class="total-section">
-                <span class="total-label">Total Pagado</span>
+                <span class="total-label">Total pagado</span>
                 <span class="total-amount">${this.formatPrice(data.totalAmount)}</span>
               </div>
+              
+              <div class="info-card">
+                <p class="info-title">Envío a domicilio</p>
+                <p class="info-text">${data.customer.street} ${data.customer.apartment || ''}</p>
+                <p class="info-sub">${data.customer.city}, ${data.customer.province}</p>
+                <p class="info-sub" style="margin-top: 8px;">Recibe: ${data.customer.firstName} ${data.customer.lastName}</p>
+              </div>
 
-              <div style="margin-top: 40px;">
-                <a href="${data.trackingUrl}" class="btn">Ver Estado del Pedido</a>
+              <div class="btn-container">
+                <a href="${data.trackingUrl}" class="btn">Ver mi Pedido</a>
               </div>
             </div>
 
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} ${this.storeName}. Elevá tu energía.</p>
-              <p>¿Necesitás ayuda? Respondé a este correo.</p>
-            </div>
+            ${this.generateFooter()}
           </div>
         </div>
       </body>
@@ -312,17 +275,15 @@ export class EmailService {
     `;
 
     try {
-      const result = await this.resend.emails.send({
+      await this.resend.emails.send({
         from: `${this.storeName} <${this.fromEmail}>`,
         to: data.customer.email,
-        subject: `Confirmación de Pedido #${data.orderId.slice(0, 8).toUpperCase()}`,
+        subject: `Confirmamos tu pedido #${data.orderId.slice(0, 8).toUpperCase()}`,
         html,
       });
-
-      this.logger.log(`Email de confirmación enviado a ${data.customer.email}: ${result.data?.id}`);
       return true;
     } catch (error) {
-      this.logger.error(`Error enviando email de confirmación: ${error.message}`);
+      this.logger.error(`Error enviando email: ${error.message}`);
       return false;
     }
   }
@@ -339,41 +300,31 @@ export class EmailService {
       <body>
         <div class="wrapper">
           <div class="container">
-            <div class="header">
-              <div class="brand">LUB <span>ENERGY</span></div>
-            </div>
+            ${this.generateHeader()}
             
             <div class="content">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <div class="status-badge">🚚 ENVIADO</div>
-                <h1>¡Tu pedido está en camino!</h1>
-                <p>Tu suplementación ya salió de nuestro depósito.</p>
+              <div style="text-align: center;">
+                <span class="status-pill status-shipped">Enviado</span>
+                <h2 class="h1">¡Tu pedido está en camino!</h2>
+                <p class="text">Despachamos tus productos por medio de <strong>${data.courierName || 'Correo'}</strong>.</p>
               </div>
 
-              <div class="tracking-box">
-                <p style="text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: 700; color: ${this.colors.primary};">
-                  ${data.courierName ? data.courierName : 'Código de seguimiento'}
-                </p>
-                <div class="tracking-code">${data.trackingCode}</div>
-                <p style="font-size: 13px; margin-top: 10px;">Copiá el código para rastrearlo en la web del correo.</p>
+              <div style="background-color: #f9fafb; border: 1px solid #e4e4e7; border-radius: 12px; padding: 24px; text-align: center; margin: 30px 0;">
+                <p style="margin: 0 0 8px 0; color: #a1a1aa; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Tracking Code</p>
+                <p style="margin: 0; font-family: 'Courier New', monospace; font-size: 20px; letter-spacing: 1px; color: ${this.darkColor}; font-weight: 700;">${data.trackingCode}</p>
               </div>
-              
-              <hr class="divider">
 
-              <h3>Detalle del envío</h3>
-              ${this.generateCustomerInfo(data.customer)}
-              
-              <h3 style="margin-top: 30px;">Contenido del paquete</h3>
-              ${this.generateItemsTable(data.items)}
+              <div class="btn-container">
+                <a href="${data.trackingUrl}" class="btn">Seguir envío</a>
+              </div>
 
-              <div style="margin-top: 40px;">
-                <a href="${data.trackingUrl}" class="btn">Rastrear Pedido</a>
+              <div class="info-card">
+                 <p class="info-title">Destino</p>
+                 <p class="info-text">${data.customer.street}, ${data.customer.city}</p>
               </div>
             </div>
 
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} ${this.storeName}. Elevá tu energía.</p>
-            </div>
+            ${this.generateFooter()}
           </div>
         </div>
       </body>
@@ -381,17 +332,15 @@ export class EmailService {
     `;
 
     try {
-      const result = await this.resend.emails.send({
+      await this.resend.emails.send({
         from: `${this.storeName} <${this.fromEmail}>`,
         to: data.customer.email,
-        subject: `🚚 Tu pedido está en camino - #${data.orderId.slice(0, 8).toUpperCase()}`,
+        subject: `🚚 En camino - Pedido #${data.orderId.slice(0, 8).toUpperCase()}`,
         html,
       });
-
-      this.logger.log(`Email de tracking enviado a ${data.customer.email}: ${result.data?.id}`);
       return true;
     } catch (error) {
-      this.logger.error(`Error enviando email de tracking: ${error.message}`);
+      this.logger.error(`Error enviando email: ${error.message}`);
       return false;
     }
   }

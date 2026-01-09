@@ -3,7 +3,6 @@ import { IsString, IsOptional, IsEnum, MaxLength } from 'class-validator';
 export enum OrderStatusUpdate {
   CONFIRMED = 'CONFIRMED',
   SHIPPED = 'SHIPPED',
-  DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
 }
 

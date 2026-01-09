@@ -139,7 +139,6 @@ export class OrdersService {
       createdAt: order.createdAt,
       confirmedAt: order.confirmedAt,
       shippedAt: order.shippedAt,
-      deliveredAt: order.deliveredAt,
       items: order.items.map((item) => ({
         productName: item.productName,
         quantity: item.quantity,
@@ -167,8 +166,6 @@ export class OrdersService {
     // Agregar timestamps según el estado
     if (updateDto.status === OrderStatusUpdate.CONFIRMED) {
       updateData.confirmedAt = new Date();
-    } else if (updateDto.status === OrderStatusUpdate.DELIVERED) {
-      updateData.deliveredAt = new Date();
     }
 
     // Si se confirma el pedido, usar transacción para reducir stock
@@ -324,16 +321,15 @@ export class OrdersService {
 
   // Estadísticas para dashboard
   async getStats() {
-    const [pending, confirmed, shipped, delivered, cancelled, total] =
+    const [pending, confirmed, shipped, cancelled, total] =
       await Promise.all([
         this.prisma.order.count({ where: { status: OrderStatus.PENDING, deletedAt: null } }),
         this.prisma.order.count({ where: { status: OrderStatus.CONFIRMED, deletedAt: null } }),
         this.prisma.order.count({ where: { status: OrderStatus.SHIPPED, deletedAt: null } }),
-        this.prisma.order.count({ where: { status: OrderStatus.DELIVERED, deletedAt: null } }),
         this.prisma.order.count({ where: { status: OrderStatus.CANCELLED, deletedAt: null } }),
         this.prisma.order.aggregate({
           where: { 
-            status: { in: [OrderStatus.CONFIRMED, OrderStatus.SHIPPED, OrderStatus.DELIVERED] },
+            status: { in: [OrderStatus.CONFIRMED, OrderStatus.SHIPPED] },
             deletedAt: null 
           },
           _sum: { totalAmount: true },
@@ -344,7 +340,6 @@ export class OrdersService {
       pending,
       confirmed,
       shipped,
-      delivered,
       cancelled,
       totalRevenue: total._sum.totalAmount || 0,
     };

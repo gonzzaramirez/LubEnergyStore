@@ -123,7 +123,7 @@ export interface CreateCategoryDto {
 export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
 
 // Order Types
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'CANCELLED';
 
 export interface OrderItem {
   id?: string;
@@ -159,7 +159,6 @@ export interface Order {
   updatedAt: string;
   confirmedAt?: string;
   shippedAt?: string;
-  deliveredAt?: string;
   guestCustomer?: GuestCustomer;
   items: OrderItem[];
 }
@@ -201,7 +200,6 @@ export interface OrderPublic {
   createdAt: string;
   confirmedAt?: string;
   shippedAt?: string;
-  deliveredAt?: string;
   items: {
     productName: string;
     quantity: number;
@@ -216,7 +214,6 @@ export interface OrderStats {
   pending: number;
   confirmed: number;
   shipped: number;
-  delivered: number;
   cancelled: number;
   totalRevenue: number;
 }

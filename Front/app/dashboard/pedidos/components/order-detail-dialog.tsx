@@ -36,7 +36,6 @@ const statusConfig: Record<
   PENDING: { label: "Pendiente", variant: "outline", color: "text-yellow-600" },
   CONFIRMED: { label: "Confirmado", variant: "default", color: "text-green-600" },
   SHIPPED: { label: "Enviado", variant: "secondary", color: "text-blue-600" },
-  DELIVERED: { label: "Entregado", variant: "default", color: "text-green-700" },
   CANCELLED: { label: "Cancelado", variant: "destructive", color: "text-red-600" },
 };
 
@@ -80,7 +79,7 @@ export function OrderDetailDialog({
 
         <div className="space-y-6">
           {/* Timeline */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div className={`p-3 rounded-lg bg-secondary/50 ${order.status !== "CANCELLED" ? "border-2 border-green-500" : ""}`}>
               <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Creado</p>
@@ -95,11 +94,6 @@ export function OrderDetailDialog({
               <Truck className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Enviado</p>
               <p className="text-xs font-medium">{formatDate(order.shippedAt)}</p>
-            </div>
-            <div className={`p-3 rounded-lg bg-secondary/50 ${order.deliveredAt ? "border-2 border-green-500" : ""}`}>
-              <Package className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Entregado</p>
-              <p className="text-xs font-medium">{formatDate(order.deliveredAt)}</p>
             </div>
           </div>
 

@@ -21,11 +21,29 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
+      const result = await login({ email, password });
+      console.log("✅ Login exitoso:", result);
+      
+      // Pequeño delay para asegurar que las cookies se establezcan
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Verificar que las cookies estén disponibles
+      const hasAccessToken = document.cookie.includes('access_token');
+      console.log("🍪 Cookie access_token presente:", hasAccessToken);
+      console.log("🍪 Todas las cookies:", document.cookie);
+      
+      // Redirigir al dashboard
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      console.error("❌ Error en login:", err);
+      if (err instanceof Error) {
+        setError(err.message || "Error al iniciar sesión");
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        setError(String(err.message));
+      } else {
+        setError("Error al iniciar sesión. Por favor, revisa la consola para más detalles.");
+      }
     } finally {
       setIsLoading(false);
     }

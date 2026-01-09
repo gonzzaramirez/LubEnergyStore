@@ -19,7 +19,10 @@ export interface LoginResponse {
 }
 
 export async function login(credentials: LoginCredentials): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const url = `${API_URL}/auth/login`;
+  console.log('🔐 Intentando login a:', url);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -28,12 +31,34 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
     body: JSON.stringify(credentials),
   });
 
+  console.log('📡 Respuesta del servidor:', {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok,
+    headers: Object.fromEntries(response.headers.entries()),
+  });
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Error al iniciar sesión');
+    let errorMessage = 'Error al iniciar sesión';
+    try {
+      const error = await response.json();
+      errorMessage = error.message || errorMessage;
+      console.error('❌ Error del servidor:', error);
+    } catch (e) {
+      console.error('❌ No se pudo parsear el error:', e);
+      errorMessage = `Error ${response.status}: ${response.statusText}`;
+    }
+    throw new Error(errorMessage);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('✅ Login exitoso, datos recibidos:', data);
+  
+  // Verificar cookies en la respuesta
+  const setCookieHeader = response.headers.get('set-cookie');
+  console.log('🍪 Set-Cookie header:', setCookieHeader);
+  
+  return data;
 }
 
 export async function logout(): Promise<void> {

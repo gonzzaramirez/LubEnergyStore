@@ -29,30 +29,38 @@ export class AuthController {
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
     
     // Verificar si son subdominios del mismo dominio base
-    // Ejemplo: test.farmaciadeturnomc.site y api.farmaciadeturnomc.site comparten el dominio base
+    // Ejemplo: x0p.lubenergy.com.ar y lubenergy.com.ar comparten el dominio base
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
     
-    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
-      // Extraer el dominio base (últimas 2 partes del hostname)
-      const currentParts = currentHost.split('.');
-      const frontendParts = frontendHost.split('.');
+    // Lista de TLDs de segundo nivel (como .com.ar, .gov.ar, .org.ar, .co.uk, etc.)
+    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
+    
+    // Función para obtener el dominio base correctamente
+    const getBaseDomain = (host: string): string => {
+      const parts = host.split('.');
+      if (parts.length < 2) return host;
       
-      // Si ambos tienen al menos 2 partes, verificar si comparten el dominio base
-      if (currentParts.length >= 2 && frontendParts.length >= 2) {
-        const currentBase = currentParts.slice(-2).join('.');
-        const frontendBase = frontendParts.slice(-2).join('.');
-        
-        // Si comparten el dominio base, son same-site (usar 'lax' con dominio compartido)
-        if (currentBase === frontendBase) {
-          domain = `.${currentBase}`;
-          sameSiteValue = 'lax';
-        } else {
-          // Dominios completamente diferentes, necesitamos 'none'
-          sameSiteValue = 'none';
-        }
+      // Verificar si termina en un TLD de segundo nivel
+      const lastTwo = parts.slice(-2).join('.');
+      if (secondLevelTLDs.includes(lastTwo) && parts.length >= 3) {
+        // Para .com.ar, necesitamos las últimas 3 partes (ej: lubenergy.com.ar)
+        return parts.slice(-3).join('.');
+      }
+      // Para TLDs normales, las últimas 2 partes (ej: example.com)
+      return parts.slice(-2).join('.');
+    };
+    
+    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+      const currentBase = getBaseDomain(currentHost);
+      const frontendBase = getBaseDomain(frontendHost);
+      
+      // Si comparten el dominio base, son same-site (usar 'lax' con dominio compartido)
+      if (currentBase === frontendBase) {
+        domain = `.${currentBase}`;
+        sameSiteValue = 'lax';
       } else {
-        // No podemos determinar, usar 'none' por seguridad
+        // Dominios completamente diferentes, necesitamos 'none'
         sameSiteValue = 'none';
       }
     }
@@ -121,23 +129,29 @@ export class AuthController {
     const currentHost = request.get('host')?.split(':')[0] || '';
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
     
+    // Lista de TLDs de segundo nivel (como .com.ar, .gov.ar, etc.)
+    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
+    
+    const getBaseDomain = (host: string): string => {
+      const parts = host.split('.');
+      if (parts.length < 2) return host;
+      const lastTwo = parts.slice(-2).join('.');
+      if (secondLevelTLDs.includes(lastTwo) && parts.length >= 3) {
+        return parts.slice(-3).join('.');
+      }
+      return parts.slice(-2).join('.');
+    };
+    
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
     
     if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
-      const currentParts = currentHost.split('.');
-      const frontendParts = frontendHost.split('.');
+      const currentBase = getBaseDomain(currentHost);
+      const frontendBase = getBaseDomain(frontendHost);
       
-      if (currentParts.length >= 2 && frontendParts.length >= 2) {
-        const currentBase = currentParts.slice(-2).join('.');
-        const frontendBase = frontendParts.slice(-2).join('.');
-        
-        if (currentBase === frontendBase) {
-          domain = `.${currentBase}`;
-          sameSiteValue = 'lax';
-        } else {
-          sameSiteValue = 'none';
-        }
+      if (currentBase === frontendBase) {
+        domain = `.${currentBase}`;
+        sameSiteValue = 'lax';
       } else {
         sameSiteValue = 'none';
       }
@@ -174,23 +188,29 @@ export class AuthController {
     const currentHost = request.get('host')?.split(':')[0] || '';
     const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
     
+    // Lista de TLDs de segundo nivel
+    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
+    
+    const getBaseDomain = (host: string): string => {
+      const parts = host.split('.');
+      if (parts.length < 2) return host;
+      const lastTwo = parts.slice(-2).join('.');
+      if (secondLevelTLDs.includes(lastTwo) && parts.length >= 3) {
+        return parts.slice(-3).join('.');
+      }
+      return parts.slice(-2).join('.');
+    };
+    
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
     
     if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
-      const currentParts = currentHost.split('.');
-      const frontendParts = frontendHost.split('.');
+      const currentBase = getBaseDomain(currentHost);
+      const frontendBase = getBaseDomain(frontendHost);
       
-      if (currentParts.length >= 2 && frontendParts.length >= 2) {
-        const currentBase = currentParts.slice(-2).join('.');
-        const frontendBase = frontendParts.slice(-2).join('.');
-        
-        if (currentBase === frontendBase) {
-          domain = `.${currentBase}`;
-          sameSiteValue = 'lax';
-        } else {
-          sameSiteValue = 'none';
-        }
+      if (currentBase === frontendBase) {
+        domain = `.${currentBase}`;
+        sameSiteValue = 'lax';
       } else {
         sameSiteValue = 'none';
       }

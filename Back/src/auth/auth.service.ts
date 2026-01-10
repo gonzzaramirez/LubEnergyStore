@@ -52,7 +52,7 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '7d' }); // 1 semana
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
     return {
@@ -88,7 +88,7 @@ export class AuthService {
         role: user.role,
       };
 
-      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '1h' });
+      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '7d' }); // 1 semana
 
       return { accessToken };
     } catch {

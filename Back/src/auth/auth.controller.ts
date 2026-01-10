@@ -79,7 +79,7 @@ export class AuthController {
 
     response.cookie('access_token', result.accessToken, {
       ...cookieOptions,
-      maxAge: 60 * 60 * 1000, // 1 hora
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 semana
     });
 
     response.cookie('refresh_token', result.refreshToken, {
@@ -162,7 +162,7 @@ export class AuthController {
       secure: isSecure,
       sameSite: sameSiteValue,
       path: '/',
-      maxAge: 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 semana
     };
     
     if (domain) {

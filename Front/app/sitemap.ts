@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://test.farmaciadeturnomc.site'
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lubenergy.com.ar'
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface Product {

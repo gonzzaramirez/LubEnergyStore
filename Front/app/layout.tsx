@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://test.farmaciadeturnomc.site";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://lubenergy.com.ar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

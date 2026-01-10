@@ -7,7 +7,7 @@ import { ProductDetailClient } from "./product-detail-client";
 import { Product } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://test.farmaciadeturnomc.site';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lubenergy.com.ar';
 
 // Función para obtener producto por slug
 async function getProductBySlug(slug: string): Promise<Product | null> {

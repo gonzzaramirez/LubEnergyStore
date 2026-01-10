@@ -1,14 +1,17 @@
 {
-  "name": "LUB ENERGY - Suplementos Deportivos",
+  "name": "LUB ENERGY - Suplementos Deportivos Argentina",
   "short_name": "LUB ENERGY",
-  "description": "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos y más.",
+  "description": "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos y más. Envíos a todo el país.",
   "start_url": "/",
+  "id": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#00ff7f",
   "orientation": "portrait-primary",
   "categories": ["shopping", "health", "fitness"],
   "lang": "es-AR",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/rayo2.png",
@@ -21,6 +24,16 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Ver Productos",
+      "short_name": "Productos",
+      "description": "Ver catálogo de suplementos",
+      "url": "/productos",
+      "icons": [{ "src": "/rayo2.png", "sizes": "192x192" }]
     }
   ]
 }

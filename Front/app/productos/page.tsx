@@ -4,7 +4,7 @@ import { ProductGrid } from "./components/product-grid";
 import { CartSidebar } from "@/components/cart-sidebar";
 import { Footer } from "@/components/footer";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://test.farmaciadeturnomc.site';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lubenergy.com.ar';
 
 export const metadata: Metadata = {
   title: "Productos | Catálogo de Suplementos Deportivos",

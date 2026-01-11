@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { DataTable } from "@/components/data-table";
 import { getColumns } from "./components/columns";
 import { CreateProductDialog } from "./components/create-product-dialog";
 import { EditProductDialog } from "./components/edit-product-dialog";
+import { CategoryFilter } from "./components/category-filter";
+import { QuickStockDialog } from "./components/quick-stock-dialog";
 import { Product, Category } from "@/lib/types";
 import {
   getProducts,
   getDeletedProducts,
   deleteProduct,
   restoreProduct,
+  updateProductStock,
 } from "@/lib/api/product";
 import { getCategories } from "@/lib/api/category";
 import { toast } from "sonner";
@@ -41,6 +44,8 @@ export default function ProductosPage() {
   const [restoringProduct, setRestoringProduct] = useState<Product | null>(
     null
   );
+  // Nuevo: filtro de categorías
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -133,6 +138,27 @@ export default function ProductosPage() {
     }
   };
 
+  // Handler para actualizar stock rápido
+  const handleUpdateStock = async (
+    productId: string,
+    quantity: number,
+    flavorId?: string
+  ) => {
+    await updateProductStock(productId, quantity, flavorId);
+    fetchData(); // Refrescar la lista
+  };
+
+  // Filtrar productos por categorías seleccionadas
+  const filteredProducts = useMemo(() => {
+    if (selectedCategories.length === 0) {
+      return products;
+    }
+    return products.filter(
+      (product) =>
+        product.categoryId && selectedCategories.includes(product.categoryId)
+    );
+  }, [products, selectedCategories]);
+
   const columns = getColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
@@ -166,16 +192,30 @@ export default function ProductosPage() {
         <TabsContent value="activos">
           <DataTable
             columns={columns}
-            data={products}
+            data={filteredProducts}
             isLoading={isLoading}
             searchPlaceholder="Buscar productos..."
             searchColumnId="name"
+            initialPageSize={25}
             onDeleteRows={handleDeleteRows}
-            headerActions={
-              <CreateProductDialog
+            filterComponent={
+              <CategoryFilter
                 categories={categories}
-                onSuccess={fetchData}
+                selectedCategories={selectedCategories}
+                onSelectionChange={setSelectedCategories}
               />
+            }
+            headerActions={
+              <div className="flex items-center gap-2">
+                <QuickStockDialog
+                  products={products}
+                  onUpdateStock={handleUpdateStock}
+                />
+                <CreateProductDialog
+                  categories={categories}
+                  onSuccess={fetchData}
+                />
+              </div>
             }
           />
         </TabsContent>
@@ -187,6 +227,7 @@ export default function ProductosPage() {
             isLoading={isLoadingDeleted}
             searchPlaceholder="Buscar productos eliminados..."
             searchColumnId="name"
+            initialPageSize={25}
             onDeleteRows={handleDeleteRows}
           />
         </TabsContent>

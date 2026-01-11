@@ -164,3 +164,36 @@ export async function getPriceHistory(productId: string): Promise<PriceHistory[]
 
   return response.json();
 }
+
+// Actualizar stock de un producto (sumar cantidad)
+export async function updateProductStock(
+  productId: string,
+  quantityToAdd: number,
+  flavorId?: string
+): Promise<Product> {
+  // Primero obtenemos el producto actual
+  const product = await getProduct(productId);
+  
+  let newStockQuantity: number;
+  let updateData: UpdateProductDto;
+
+  if (flavorId && product.flavors) {
+    // Actualizar stock del sabor específico
+    const updatedFlavors = product.flavors.map((flavor) => {
+      if (flavor.id === flavorId) {
+        return {
+          ...flavor,
+          stockQuantity: flavor.stockQuantity + quantityToAdd,
+        };
+      }
+      return flavor;
+    });
+    updateData = { flavors: updatedFlavors };
+  } else {
+    // Actualizar stock del producto principal
+    newStockQuantity = (product.stockQuantity ?? 0) + quantityToAdd;
+    updateData = { stockQuantity: newStockQuantity };
+  }
+
+  return updateProduct(productId, updateData);
+}

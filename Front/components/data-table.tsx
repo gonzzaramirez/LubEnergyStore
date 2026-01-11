@@ -85,6 +85,7 @@ interface DataTableProps<TData, TValue> {
     | ((table: TanstackTable<TData>) => React.ReactNode);
   headerActions?: React.ReactNode;
   initialColumnVisibility?: VisibilityState;
+  initialPageSize?: number;
   showDeletedToggle?: {
     checked: boolean;
     onCheckedChange: (checked: boolean) => void;
@@ -104,6 +105,7 @@ export function DataTable<TData, TValue>({
   filterComponent,
   headerActions,
   initialColumnVisibility = {},
+  initialPageSize = 10,
   showDeletedToggle,
   hideColumnVisibility = false,
   mobileRender,
@@ -115,7 +117,7 @@ export function DataTable<TData, TValue>({
   );
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: initialPageSize,
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const [sorting, setSorting] = useState<SortingState>([]);

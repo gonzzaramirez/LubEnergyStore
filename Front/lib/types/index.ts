@@ -1,4 +1,24 @@
 // Product Types
+export interface ProductFlavor {
+  id: string;
+  productId: string;
+  name: string;
+  sku?: string;
+  imageUrl?: string;
+  stockQuantity: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductFlavorDto {
+  name: string;
+  sku?: string;
+  imageUrl?: string;
+  stockQuantity: number;
+  isActive?: boolean;
+}
+
 export interface Product {
   id: string;
   categoryId?: number;
@@ -21,6 +41,7 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
   category?: Category;
+  flavors?: ProductFlavor[];
 }
 
 export interface CreateProductDto {
@@ -41,6 +62,7 @@ export interface CreateProductDto {
   // Descuento por cantidad
   minQuantityDiscount?: number;
   quantityDiscountPercent?: number;
+  flavors?: CreateProductFlavorDto[];
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
@@ -128,7 +150,9 @@ export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'CANCELLED';
 export interface OrderItem {
   id?: string;
   productId: string;
+  flavorId?: string;
   productName: string;
+  flavorName?: string;
   quantity: number;
   unitPrice: number;
   imageUrl?: string;

@@ -10,7 +10,8 @@ export class ProductsService {
 
   create(createProductDto: CreateProductDto) {
     // Preparar datos, convirtiendo fechas al formato ISO-8601 completo
-    const dataToCreate: any = { ...createProductDto };
+    const { flavors, ...rest } = createProductDto;
+    const dataToCreate: any = { ...rest };
 
     if (dataToCreate.discountStartDate) {
       dataToCreate.discountStartDate = new Date(dataToCreate.discountStartDate);
@@ -19,8 +20,15 @@ export class ProductsService {
       dataToCreate.discountEndDate = new Date(dataToCreate.discountEndDate);
     }
 
+    if (flavors && flavors.length > 0) {
+      dataToCreate.flavors = {
+        create: flavors,
+      };
+    }
+
     return this.prisma.product.create({
       data: dataToCreate,
+      include: { flavors: true },
     });
   }
 
@@ -32,21 +40,32 @@ export class ProductsService {
 
     return this.prisma.product.findMany({
       where,
-      include: { category: true },
+      include: { 
+        category: true,
+        flavors: {
+          where: { isActive: true }
+        }
+      },
     });
   }
 
   findAllDeleted() {
     return this.prisma.product.findMany({
       where: { deletedAt: { not: null } },
-      include: { category: true },
+      include: { 
+        category: true,
+        flavors: true
+      },
     });
   }
 
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id, deletedAt: null },
-      include: { category: true },
+      include: { 
+        category: true,
+        flavors: true
+      },
     });
 
     if (!product) {
@@ -59,7 +78,12 @@ export class ProductsService {
   async findOneBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
       where: { slug, deletedAt: null },
-      include: { category: true },
+      include: { 
+        category: true,
+        flavors: {
+          where: { isActive: true }
+        }
+      },
     });
 
     if (!product) {
@@ -90,7 +114,8 @@ export class ProductsService {
     }
 
     // Preparar datos para actualizar, convirtiendo fechas al formato ISO-8601 completo
-    const dataToUpdate: any = { ...updateProductDto };
+    const { flavors, ...rest } = updateProductDto;
+    const dataToUpdate: any = { ...rest };
 
     // Convertir fechas de descuento si están presentes
     if (dataToUpdate.discountStartDate) {
@@ -100,9 +125,24 @@ export class ProductsService {
       dataToUpdate.discountEndDate = new Date(dataToUpdate.discountEndDate);
     }
 
+    // Manejar sabores en la actualización
+    if (flavors) {
+      // Para simplificar, eliminamos los sabores existentes y creamos los nuevos
+      // O podríamos hacer un upsert más complejo. Por ahora, sigamos la petición de "donde creo los sabores"
+      // indicando que esto se maneja en el update del producto base.
+      await this.prisma.productFlavor.deleteMany({
+        where: { productId: id },
+      });
+
+      dataToUpdate.flavors = {
+        create: flavors,
+      };
+    }
+
     return this.prisma.product.update({
       where: { id },
       data: dataToUpdate,
+      include: { flavors: true },
     });
   }
 

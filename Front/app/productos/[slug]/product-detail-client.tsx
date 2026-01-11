@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Product } from "@/lib/types";
+import { Product, ProductFlavor } from "@/lib/types";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Minus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingBag, Check } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -16,12 +17,18 @@ interface ProductDetailClientProps {
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [quantity, setQuantity] = useState(1);
+  const [selectedFlavor, setSelectedFlavor] = useState<ProductFlavor | null>(
+    product.flavors && product.flavors.length > 0 ? product.flavors[0] : null
+  );
+
   const { addItem, items, setIsOpen } = useCart();
 
-  const cartItem = items.find((item) => item.id === product.id);
-  const isInCart = !!cartItem;
-
   const handleAddToCart = () => {
+    if (product.flavors && product.flavors.length > 0 && !selectedFlavor) {
+      toast.error("Por favor selecciona un sabor");
+      return;
+    }
+
     // Convertir nombre de categoría a tipo Category del carrito
     const categoryName =
       product.category?.name?.toLowerCase().replace(/\s+/g, "-") || "otros";
@@ -47,20 +54,22 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     // Adaptar producto al formato del carrito
     const cartProduct = {
       id: product.id,
-      name: product.name,
+      name: selectedFlavor ? `${product.name} (${selectedFlavor.name})` : product.name,
       description: product.description,
       price: product.price,
       category: category,
-      image: product.imageUrl || "/placeholder.svg",
+      image: selectedFlavor?.imageUrl || product.imageUrl || "/placeholder.svg",
+      flavorId: selectedFlavor?.id,
+      flavorName: selectedFlavor?.name,
     };
 
     // Agregar la cantidad especificada
     for (let i = 0; i < quantity; i++) {
-      addItem(cartProduct);
+      addItem(cartProduct as any);
     }
 
     toast.success(
-      `¡${quantity} ${product.name} agregado${
+      `¡${quantity} ${cartProduct.name} agregado${
         quantity > 1 ? "s" : ""
       } al carrito!`
     );
@@ -72,6 +81,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   };
 
   const displayPrice = product.price;
+
+  // Verificar stock total o de sabor seleccionado
+  const currentStock = selectedFlavor 
+    ? selectedFlavor.stockQuantity 
+    : (product.flavors && product.flavors.length > 0)
+      ? product.flavors.reduce((acc, f) => acc + f.stockQuantity, 0)
+      : product.stockQuantity || 0;
+
+  const isOutOfStock = currentStock === 0;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-6 sm:px-6 sm:pt-24 sm:pb-8 md:pt-28 md:pb-12 lg:pb-16">
@@ -88,11 +106,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         {/* Image Section */}
         <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-border bg-zinc-950 p-6 sm:rounded-2xl sm:p-12">
           <Image
-            src={product.imageUrl || "/placeholder.svg"}
-            alt={`${product.name} - ${product.category?.name || 'Suplemento deportivo'} | LUB ENERGY`}
+            src={selectedFlavor?.imageUrl || product.imageUrl || "/placeholder.svg"}
+            alt={`${product.name}${selectedFlavor ? ` - ${selectedFlavor.name}` : ''} - ${product.category?.name || 'Suplemento deportivo'} | LUB ENERGY`}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-contain"
+            className="object-contain transition-all duration-300"
             priority
           />
         </div>
@@ -112,10 +130,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           <div>
             <h1 className="mb-2 text-2xl font-bold text-foreground sm:mb-4 sm:text-3xl md:text-4xl lg:text-5xl">
               {product.name}
+              {selectedFlavor && (
+                <span className="text-muted-foreground block text-sm font-medium sm:inline sm:ml-3 sm:text-base md:text-lg lg:text-xl">
+                  ({selectedFlavor.name})
+                </span>
+              )}
             </h1>
-            {product.sku && (
+            {(selectedFlavor?.sku || product.sku) && (
               <p className="text-xs text-muted-foreground sm:text-sm">
-                SKU: {product.sku}
+                SKU: {selectedFlavor?.sku || product.sku}
               </p>
             )}
           </div>
@@ -140,6 +163,39 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </p>
           </div>
 
+          {/* Flavor Selector */}
+          {product.flavors && product.flavors.length > 0 && (
+            <div className="space-y-4 pt-2">
+              <h2 className="text-lg font-semibold sm:text-xl">Seleccionar Sabor</h2>
+              <div className="flex flex-wrap gap-2">
+                {product.flavors.map((flavor) => (
+                  <button
+                    key={flavor.id}
+                    onClick={() => setSelectedFlavor(flavor)}
+                    disabled={flavor.stockQuantity === 0}
+                    className={cn(
+                      "relative flex items-center justify-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all cursor-pointer",
+                      selectedFlavor?.id === flavor.id
+                        ? "border-primary bg-primary/10 text-primary shadow-sm"
+                        : "border-border bg-secondary/5 text-muted-foreground hover:border-primary/50 hover:bg-secondary/10",
+                      flavor.stockQuantity === 0 && "opacity-50 cursor-not-allowed grayscale"
+                    )}
+                  >
+                    {flavor.name}
+                    {selectedFlavor?.id === flavor.id && (
+                      <Check className="h-4 w-4" />
+                    )}
+                    {flavor.stockQuantity === 0 && (
+                      <span className="absolute -top-2 -right-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">
+                        Sin stock
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quantity Selector */}
           <div className="pt-4 sm:pt-6">
             <div className="flex items-center gap-2 sm:gap-4">
@@ -149,7 +205,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  disabled={quantity <= 1 || product.stockQuantity === 0}
+                  disabled={quantity <= 1 || isOutOfStock}
                   className="h-7 w-7 rounded-full cursor-pointer sm:h-9 sm:w-9 md:h-10 md:w-10"
                   aria-label="Reducir cantidad"
                 >
@@ -166,7 +222,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setQuantity((q) => q + 1)}
-                  disabled={product.stockQuantity === 0}
+                  disabled={isOutOfStock || (selectedFlavor ? quantity >= selectedFlavor.stockQuantity : false)}
                   className="h-7 w-7 rounded-full cursor-pointer sm:h-9 sm:w-9 md:h-10 md:w-10"
                   aria-label="Aumentar cantidad"
                 >
@@ -178,11 +234,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <Button
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={product.stockQuantity === 0}
+                disabled={isOutOfStock}
                 className="flex-1 rounded-full text-base font-semibold h-12 shadow-md transition-all cursor-pointer hover:shadow-lg green-glow sm:h-12 sm:text-base md:h-14 md:text-lg"
-                aria-label={product.stockQuantity === 0 ? "Producto sin stock" : `Agregar ${quantity} ${product.name} al carrito`}
+                aria-label={isOutOfStock ? "Producto sin stock" : `Agregar ${quantity} ${product.name} al carrito`}
               >
-                {product.stockQuantity === 0 ? (
+                {isOutOfStock ? (
                   "Sin Stock"
                 ) : (
                   <>

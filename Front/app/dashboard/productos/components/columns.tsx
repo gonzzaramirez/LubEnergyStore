@@ -100,21 +100,35 @@ export const getColumns = ({
     accessorKey: "stockQuantity",
     header: "Stock",
     cell: ({ row }) => {
-      const stock = row.getValue("stockQuantity") as number | undefined;
+      const product = row.original;
+      let stock = product.stockQuantity;
+      
+      // Si tiene sabores, el stock es la suma de los sabores
+      if (product.flavors && product.flavors.length > 0) {
+        stock = product.flavors.reduce((acc, f) => acc + f.stockQuantity, 0);
+      }
+
       return (
-        <Badge
-          variant={
-            stock === undefined || stock === null
-              ? "secondary"
-              : stock <= 0
-              ? "destructive"
-              : stock <= 10
-              ? "outline"
-              : "default"
-          }
-        >
-          {stock ?? "N/A"}
-        </Badge>
+        <div className="flex flex-col gap-1">
+          <Badge
+            variant={
+              stock === undefined || stock === null
+                ? "secondary"
+                : stock <= 0
+                ? "destructive"
+                : stock <= 10
+                ? "outline"
+                : "default"
+            }
+          >
+            {stock ?? "N/A"}
+          </Badge>
+          {product.flavors && product.flavors.length > 0 && (
+            <span className="text-[10px] text-muted-foreground">
+              {product.flavors.length} sabores
+            </span>
+          )}
+        </div>
       );
     },
     size: 80,

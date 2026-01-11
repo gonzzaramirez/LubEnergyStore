@@ -60,7 +60,9 @@ export class OrdersService {
           items: {
             create: items.map((item) => ({
               productId: item.productId,
+              flavorId: item.flavorId,
               productName: item.productName,
+              flavorName: item.flavorName,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
             })),
@@ -175,33 +177,61 @@ export class OrdersService {
       updatedOrder = await this.prisma.$transaction(async (tx) => {
         // 1. Reducir stock de cada producto
         for (const item of order.items) {
-          // Verificar stock disponible
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-            select: { stockQuantity: true, name: true },
-          });
+          // Si tiene sabor, reducir stock del sabor
+          if (item.flavorId) {
+            const flavor = await tx.productFlavor.findUnique({
+              where: { id: item.flavorId },
+              select: { stockQuantity: true, name: true },
+            });
 
-          if (!product) {
-            throw new BadRequestException(
-              `Producto ${item.productName} no encontrado`,
-            );
-          }
+            if (!flavor) {
+              throw new BadRequestException(
+                `Sabor ${item.flavorName} no encontrado`,
+              );
+            }
 
-          if (product.stockQuantity < item.quantity) {
-            throw new BadRequestException(
-              `Stock insuficiente para "${item.productName}". Disponible: ${product.stockQuantity}, Solicitado: ${item.quantity}`,
-            );
-          }
+            if (flavor.stockQuantity < item.quantity) {
+              throw new BadRequestException(
+                `Stock insuficiente para sabor "${item.flavorName}". Disponible: ${flavor.stockQuantity}, Solicitado: ${item.quantity}`,
+              );
+            }
 
-          // Reducir stock
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stockQuantity: {
-                decrement: item.quantity,
+            await tx.productFlavor.update({
+              where: { id: item.flavorId },
+              data: {
+                stockQuantity: {
+                  decrement: item.quantity,
+                },
               },
-            },
-          });
+            });
+          } else {
+            // Si no tiene sabor, reducir stock del producto base
+            const product = await tx.product.findUnique({
+              where: { id: item.productId },
+              select: { stockQuantity: true, name: true },
+            });
+
+            if (!product) {
+              throw new BadRequestException(
+                `Producto ${item.productName} no encontrado`,
+              );
+            }
+
+            if (product.stockQuantity < item.quantity) {
+              throw new BadRequestException(
+                `Stock insuficiente para "${item.productName}". Disponible: ${product.stockQuantity}, Solicitado: ${item.quantity}`,
+              );
+            }
+
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stockQuantity: {
+                  decrement: item.quantity,
+                },
+              },
+            });
+          }
         }
 
         // 2. Actualizar estado del pedido

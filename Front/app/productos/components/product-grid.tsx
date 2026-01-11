@@ -24,6 +24,7 @@ interface DisplayProduct {
   category: string;
   image: string;
   badge?: string;
+  flavorsCount?: number;
   // Campos de descuento
   discountPercent?: number;
   discountStartDate?: string;
@@ -77,6 +78,7 @@ export function ProductGrid({
               p.category?.name?.toLowerCase().replace(/\s+/g, "-") || "otros",
             image: p.imageUrl || "/placeholder.svg",
             badge: undefined, // No hay badge en la API por ahora
+            flavorsCount: p.flavors?.length || 0,
             // Campos de descuento
             discountPercent: p.discountPercent,
             discountStartDate: p.discountStartDate,

@@ -110,7 +110,7 @@ export function CartSidebar() {
               ) : (
                 <div className="space-y-4">
                   {items.map((item) => (
-                    <div key={item.id} className="flex gap-4 rounded-lg border border-border bg-secondary/30 p-3">
+                    <div key={`${item.id}-${item.flavorId || 'none'}`} className="flex gap-4 rounded-lg border border-border bg-secondary/30 p-3">
                       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-950 p-2">
                         <img
                           src={item.image || "/placeholder.svg"}
@@ -120,26 +120,29 @@ export function CartSidebar() {
                       </div>
                       <div className="flex flex-1 flex-col">
                         <h4 className="font-medium text-foreground line-clamp-1">{item.name}</h4>
+                        {item.flavorName && (
+                          <p className="text-[10px] text-muted-foreground">Sabor: {item.flavorName}</p>
+                        )}
                         <p className="text-sm text-primary">{formatPrice(item.price)}</p>
 
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.id, item.quantity - 1, item.flavorId)}
                               className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-secondary"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="w-6 text-center text-sm font-medium text-foreground">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.id, item.quantity + 1, item.flavorId)}
                               className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-secondary"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item.id, item.flavorId)}
                             className="flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />

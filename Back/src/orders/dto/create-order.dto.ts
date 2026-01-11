@@ -17,10 +17,19 @@ export class OrderItemDto {
   @IsNotEmpty()
   productId: string;
 
+  @IsUUID()
+  @IsOptional()
+  flavorId?: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
   productName: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  flavorName?: string;
 
   @IsNumber()
   @Min(1)

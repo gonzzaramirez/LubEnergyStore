@@ -8,6 +8,8 @@ export interface Product {
   category: Category
   image: string
   badge?: string
+  flavorId?: string
+  flavorName?: string
 }
 
 export const categories: { id: Category; label: string }[] = [

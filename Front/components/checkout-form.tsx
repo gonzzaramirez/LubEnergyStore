@@ -148,7 +148,9 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
           : notes.trim() || undefined,
         items: items.map((item) => ({
           productId: item.id,
+          flavorId: item.flavorId,
           productName: item.name,
+          flavorName: item.flavorName,
           quantity: item.quantity,
           unitPrice: item.price,
         })),

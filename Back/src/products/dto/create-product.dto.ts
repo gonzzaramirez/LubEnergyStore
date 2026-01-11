@@ -1,4 +1,27 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt, IsDateString, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt, IsDateString, Min, Max, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class CreateProductFlavorDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsInt()
+  @Min(0)
+  stockQuantity: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}
 
 export class CreateProductDto {
   @IsInt()
@@ -67,4 +90,10 @@ export class CreateProductDto {
   @Min(0)
   @Max(100)
   quantityDiscountPercent?: number;
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductFlavorDto)
+  flavors?: CreateProductFlavorDto[];
 }

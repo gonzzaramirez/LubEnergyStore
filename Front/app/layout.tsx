@@ -52,6 +52,17 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  icons: {
+    icon: [
+      { url: "/favico.png", sizes: "192x192", type: "image/png" },
+      { url: "/favico.png", sizes: "32x32", type: "image/png" },
+      { url: "/favico.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/favico.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favico.png",
+  },
   openGraph: {
     type: "website",
     locale: "es_AR",
@@ -206,8 +217,6 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/rayo2.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/rayo2.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"

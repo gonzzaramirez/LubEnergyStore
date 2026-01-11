@@ -20,6 +20,7 @@ interface DisplayProduct {
   category: string;
   image: string;
   badge?: string;
+  flavorsCount?: number;
   // Campos de descuento
   discountPercent?: number;
   discountStartDate?: string;
@@ -152,6 +153,21 @@ export function ProductCard({ product }: ProductCardProps) {
         <h3 className="mb-1 text-sm font-semibold text-foreground line-clamp-1 sm:text-base">
           {product.name}
         </h3>
+        {product.flavorsCount && product.flavorsCount > 0 ? (
+          <div className="mb-2 flex items-center gap-1.5">
+            <div className="flex -space-x-1.5 overflow-hidden">
+              {[...Array(Math.min(product.flavorsCount, 3))].map((_, i) => (
+                <div 
+                  key={i} 
+                  className="h-2 w-2 rounded-full border border-background bg-primary/40" 
+                />
+              ))}
+            </div>
+            <span className="text-[10px] font-medium text-muted-foreground sm:text-xs">
+              {product.flavorsCount} {product.flavorsCount === 1 ? 'sabor disponible' : 'sabores disponibles'}
+            </span>
+          </div>
+        ) : null}
         <p className="mb-3 flex-1 text-xs text-muted-foreground line-clamp-2 sm:mb-4 sm:text-sm">
           {product.description}
         </p>

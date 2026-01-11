@@ -10,8 +10,8 @@ export interface CartItem extends Product {
 interface CartContextType {
   items: CartItem[]
   addItem: (product: Product) => void
-  removeItem: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
+  removeItem: (productId: string, flavorId?: string) => void
+  updateQuantity: (productId: string, quantity: number, flavorId?: string) => void
   clearCart: () => void
   totalItems: number
   totalPrice: number
@@ -49,26 +49,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (product: Product) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id)
+      const existing = prev.find(
+        (item) => item.id === product.id && item.flavorId === product.flavorId
+      )
       if (existing) {
-        return prev.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prev.map((item) =>
+          item.id === product.id && item.flavorId === product.flavorId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
       }
       return [...prev, { ...product, quantity: 1 }]
     })
-    setJustAdded(product.id)
+    setJustAdded(product.flavorId ? `${product.id}-${product.flavorId}` : product.id)
     setTimeout(() => setJustAdded(null), 500)
   }
 
-  const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== productId))
+  const removeItem = (productId: string, flavorId?: string) => {
+    setItems((prev) =>
+      prev.filter((item) => !(item.id === productId && item.flavorId === flavorId))
+    )
   }
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, flavorId?: string) => {
     if (quantity < 1) {
-      removeItem(productId)
+      removeItem(productId, flavorId)
       return
     }
-    setItems((prev) => prev.map((item) => (item.id === productId ? { ...item, quantity } : item)))
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === productId && item.flavorId === flavorId
+          ? { ...item, quantity }
+          : item
+      )
+    )
   }
 
   const clearCart = () => setItems([])

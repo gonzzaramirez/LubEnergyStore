@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Percent, History, TrendingUp, Package } from "lucide-react";
+import { Loader2, Percent, History, TrendingUp, Package, Plus, Trash2 } from "lucide-react";
 import { UpdateProductDto, Product, Category, PriceHistory } from "@/lib/types";
 import { updateProduct, getPriceHistory } from "@/lib/api/product";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 
 interface EditProductDialogProps {
   product: Product | null;
@@ -58,9 +59,15 @@ export function EditProductDialog({
     handleSubmit,
     reset,
     setValue,
+    control,
     watch,
     formState: { errors },
   } = useForm<UpdateProductDto>();
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "flavors",
+  });
 
   useEffect(() => {
     if (product) {
@@ -75,6 +82,14 @@ export function EditProductDialog({
         isActive: product.isActive,
         isFeatured: product.isFeatured,
         categoryId: product.categoryId,
+        // Sabores
+        flavors: product.flavors?.map(f => ({
+          name: f.name,
+          sku: f.sku,
+          imageUrl: f.imageUrl,
+          stockQuantity: f.stockQuantity,
+          isActive: f.isActive
+        })) || [],
         // Promociones
         discountPercent: product.discountPercent || undefined,
         discountStartDate: product.discountStartDate
@@ -264,6 +279,79 @@ export function EditProductDialog({
               {errors.description && (
                 <p className="text-sm text-destructive">
                   {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label>Sabores / Variantes</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ name: "", stockQuantity: 0, isActive: true })}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Sabor
+                </Button>
+              </div>
+              <Separator />
+              {fields.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex flex-col gap-3 p-3 border rounded-lg bg-muted/50">
+                      <div className="flex items-end gap-3">
+                        <div className="flex-1 space-y-2">
+                          <Label>Nombre del Sabor</Label>
+                          <Input
+                            placeholder="Ej: Vainilla, Chocolate..."
+                            {...register(`flavors.${index}.name` as const, { required: true })}
+                          />
+                        </div>
+                        <div className="w-24 space-y-2">
+                          <Label>Stock</Label>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            {...register(`flavors.${index}.stockQuantity` as const, { 
+                              required: true, 
+                              valueAsNumber: true 
+                            })}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive h-10 w-10"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>SKU (Opcional)</Label>
+                          <Input
+                            placeholder="SKU-FLAV-001"
+                            {...register(`flavors.${index}.sku` as const)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL Imagen (Opcional)</Label>
+                          <Input
+                            placeholder="https://..."
+                            {...register(`flavors.${index}.imageUrl` as const)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic py-2">
+                  No hay sabores agregados. El producto se tratará como unidad simple.
                 </p>
               )}
             </div>

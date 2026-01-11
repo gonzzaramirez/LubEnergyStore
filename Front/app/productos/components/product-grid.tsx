@@ -130,9 +130,30 @@ export function ProductGrid({
     setSelectedCategory(category);
   };
 
+  // Ordenar categorías: creatina debe estar en segundo lugar
+  const sortedCategories = useMemo(() => {
+    const creatinaCategory = categories.find(
+      (c) => c.name.toLowerCase().includes("creatina")
+    );
+    const otherCategories = categories.filter(
+      (c) => !c.name.toLowerCase().includes("creatina")
+    );
+
+    if (!creatinaCategory) {
+      return categories; // Si no existe creatina, devolver orden original
+    }
+
+    // Si hay al menos otra categoría, poner creatina segunda
+    if (otherCategories.length > 0) {
+      return [otherCategories[0], creatinaCategory, ...otherCategories.slice(1)];
+    }
+
+    return [creatinaCategory, ...otherCategories];
+  }, [categories]);
+
   // Separar categorías: primeras 5 como botones, resto en select
-  const mainCategories = useMemo(() => categories.slice(0, 5), [categories]);
-  const otherCategories = useMemo(() => categories.slice(5), [categories]);
+  const mainCategories = useMemo(() => sortedCategories.slice(0, 5), [sortedCategories]);
+  const otherCategories = useMemo(() => sortedCategories.slice(5), [sortedCategories]);
 
   return (
     <section

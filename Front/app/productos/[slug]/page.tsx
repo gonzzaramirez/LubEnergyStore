@@ -12,21 +12,16 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lubenergy.com.ar';
 // Función para obtener producto por slug
 async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
-    console.log('[ProductPage] Fetching product:', `${API_URL}/products/slug/${slug}`)
     const response = await fetch(`${API_URL}/products/slug/${slug}`, {
       next: { revalidate: 60 }, // Revalidar cada 60 segundos
     });
 
-    console.log('[ProductPage] Response status:', response.status)
     if (!response.ok) {
-      const text = await response.text()
-      console.log('[ProductPage] Response not OK:', text)
       return null;
     }
 
     return response.json();
   } catch (error) {
-    console.error('[ProductPage] Error:', error)
     return null;
   }
 }

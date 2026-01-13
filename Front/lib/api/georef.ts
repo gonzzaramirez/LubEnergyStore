@@ -16,7 +16,6 @@ export async function getProvincias(): Promise<Provincia[]> {
     const data = await response.json();
     return data.provincias;
   } catch (error) {
-    console.error("Error fetching provincias:", error);
     // Fallback con provincias hardcodeadas
     return PROVINCIAS_FALLBACK;
   }
@@ -42,7 +41,6 @@ export async function getLocalidades(
     const data = await response.json();
     return data.localidades;
   } catch (error) {
-    console.error("Error fetching localidades:", error);
     return [];
   }
 }
@@ -70,7 +68,6 @@ export async function searchLocalidades(
     const data = await response.json();
     return data.localidades;
   } catch (error) {
-    console.error("Error searching localidades:", error);
     return [];
   }
 }

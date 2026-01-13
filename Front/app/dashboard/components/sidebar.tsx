@@ -44,7 +44,7 @@ export default function Sidebar({
       router.push("/dashboard/login");
       router.refresh();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      // Error silencioso en producción
     } finally {
       setIsLoggingOut(false);
     }

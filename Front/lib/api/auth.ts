@@ -20,7 +20,6 @@ export interface LoginResponse {
 
 export async function login(credentials: LoginCredentials): Promise<LoginResponse> {
   const url = `${API_URL}/auth/login`;
-  console.log('🔐 Intentando login a:', url);
   
   const response = await fetch(url, {
     method: 'POST',
@@ -31,32 +30,18 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
     body: JSON.stringify(credentials),
   });
 
-  console.log('📡 Respuesta del servidor:', {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok,
-    headers: Object.fromEntries(response.headers.entries()),
-  });
-
   if (!response.ok) {
     let errorMessage = 'Error al iniciar sesión';
     try {
       const error = await response.json();
       errorMessage = error.message || errorMessage;
-      console.error('❌ Error del servidor:', error);
-    } catch (e) {
-      console.error('❌ No se pudo parsear el error:', e);
+    } catch {
       errorMessage = `Error ${response.status}: ${response.statusText}`;
     }
     throw new Error(errorMessage);
   }
 
   const data = await response.json();
-  console.log('✅ Login exitoso, datos recibidos:', data);
-  
-  // Verificar cookies en la respuesta
-  const setCookieHeader = response.headers.get('set-cookie');
-  console.log('🍪 Set-Cookie header:', setCookieHeader);
   
   return data;
 }

@@ -10,18 +10,14 @@ interface Product {
 
 async function getProducts(): Promise<Product[]> {
   try {
-    console.log('[Sitemap] Fetching products from:', `${API_URL}/products`)
     const response = await fetch(`${API_URL}/products`, {
       next: { revalidate: 3600 } // Revalidar cada hora
     })
-    console.log('[Sitemap] Response status:', response.status)
     if (!response.ok) {
-      console.log('[Sitemap] Response not OK:', await response.text())
       return []
     }
     return response.json()
   } catch (error) {
-    console.error('[Sitemap] Error fetching products:', error)
     return []
   }
 }

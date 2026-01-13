@@ -189,7 +189,6 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
         setIsOpen(false);
       }, 3000);
     } catch (error) {
-      console.error("Error al crear pedido:", error);
       // Aún así abrir WhatsApp aunque falle el guardado
       const fullAddress = apartment
         ? `${street}, ${apartment}, ${city}, ${provinceName}`

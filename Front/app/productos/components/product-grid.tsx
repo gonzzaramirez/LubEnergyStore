@@ -90,14 +90,14 @@ export function ProductGrid({
         setProducts(adaptedProducts);
         setCategories(categoriesData);
       } catch (error) {
-        console.error("Error al cargar productos:", error);
+        // Error silencioso en producción
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [featuredOnly]);
 
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -132,8 +132,8 @@ export function ProductGrid({
 
   // Ordenar categorías: creatina debe estar en segundo lugar
   const sortedCategories = useMemo(() => {
-    const creatinaCategory = categories.find(
-      (c) => c.name.toLowerCase().includes("creatina")
+    const creatinaCategory = categories.find((c) =>
+      c.name.toLowerCase().includes("creatina")
     );
     const otherCategories = categories.filter(
       (c) => !c.name.toLowerCase().includes("creatina")
@@ -145,15 +145,25 @@ export function ProductGrid({
 
     // Si hay al menos otra categoría, poner creatina segunda
     if (otherCategories.length > 0) {
-      return [otherCategories[0], creatinaCategory, ...otherCategories.slice(1)];
+      return [
+        otherCategories[0],
+        creatinaCategory,
+        ...otherCategories.slice(1),
+      ];
     }
 
     return [creatinaCategory, ...otherCategories];
   }, [categories]);
 
   // Separar categorías: primeras 5 como botones, resto en select
-  const mainCategories = useMemo(() => sortedCategories.slice(0, 5), [sortedCategories]);
-  const otherCategories = useMemo(() => sortedCategories.slice(5), [sortedCategories]);
+  const mainCategories = useMemo(
+    () => sortedCategories.slice(0, 5),
+    [sortedCategories]
+  );
+  const otherCategories = useMemo(
+    () => sortedCategories.slice(5),
+    [sortedCategories]
+  );
 
   return (
     <section
@@ -182,7 +192,7 @@ export function ProductGrid({
         {/* Section Header */}
         {showTitle && (
           <div className="mb-6 text-center sm:mb-8 md:mb-10">
-            <h2 
+            <h2
               id="products-heading"
               className="mb-2 text-xl font-bold text-foreground sm:mb-3 sm:text-2xl md:text-3xl lg:text-4xl"
             >
@@ -207,7 +217,7 @@ export function ProductGrid({
         {/* Category Filter */}
         {showFilters && (
           <div className="mb-8 sm:mb-10 md:mb-12">
-            <div 
+            <div
               className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
               role="group"
               aria-label="Filtrar por categoría"
@@ -291,7 +301,7 @@ export function ProductGrid({
 
         {/* Loading State */}
         {isLoading && (
-          <div 
+          <div
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4"
             aria-busy="true"
             aria-label="Cargando productos..."
@@ -315,7 +325,7 @@ export function ProductGrid({
 
         {/* Products Grid */}
         {!isLoading && (
-          <div 
+          <div
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:gap-6 lg:grid-cols-3 xl:grid-cols-4"
             role="list"
             aria-label={`${filteredProducts.length} productos encontrados`}

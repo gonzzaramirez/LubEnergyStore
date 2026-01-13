@@ -114,7 +114,7 @@ export function EditProductDialog({
       const history = await getPriceHistory(productId);
       setPriceHistory(history);
     } catch (error) {
-      console.error("Error al cargar historial:", error);
+      // Error silencioso en producción
     } finally {
       setLoadingHistory(false);
     }

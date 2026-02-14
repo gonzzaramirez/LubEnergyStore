@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { ProductGrid } from "../productos/components/product-grid";
+import { AboutSection } from "@/components/about-section";
 import { ContactSection } from "@/components/contact-section";
 import { CartSidebar } from "@/components/cart-sidebar";
 
@@ -26,6 +27,7 @@ export default function Home() {
           </Button>
         </Link>
       </div>
+      <AboutSection />
       <ContactSection />
       <CartSidebar />
     </main>

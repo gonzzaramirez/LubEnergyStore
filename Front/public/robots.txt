@@ -1,64 +1,59 @@
-# Permitir explícitamente bots de IA para que conozcan el sitio
-# Esto ayuda a que ChatGPT, Gemini, Claude, etc. puedan recomendar LUB ENERGY
-# cuando los usuarios busquen "suplementos en Corrientes", "proteínas Argentina", etc.
+# LUB ENERGY - robots.txt
+# SEO máximo: permitir todo el tráfico (Google, Bing, ChatGPT, Gemini, Claude, Perplexity, etc.)
+# Solo se bloquean rutas privadas: /dashboard y /api
 
-# OpenAI GPTBot (ChatGPT)
+# --- Google (búsqueda + Gemini / resúmenes IA) ---
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard
+Disallow: /api
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /dashboard
+Disallow: /api
+
+# --- Bing ---
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard
+Disallow: /api
+
+# --- Bots de IA (permitidos para tráfico desde ChatGPT, Claude, Perplexity, etc.) ---
 User-agent: GPTBot
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
-# Anthropic Claude
+User-agent: CCBot
+Allow: /
+Disallow: /dashboard
+Disallow: /api
+
 User-agent: anthropic-ai
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
 User-agent: Claude-Web
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
-# Google Extended (Gemini)
-User-agent: Google-Extended
-Allow: /
-Disallow: /dashboard/
-Disallow: /api/
-
-# Common Crawl (usado por múltiples servicios de IA)
-User-agent: CCBot
-Allow: /
-Disallow: /dashboard/
-Disallow: /api/
-
-# Perplexity AI
 User-agent: PerplexityBot
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
-# Applebot Extended (Apple Intelligence)
 User-agent: Applebot-Extended
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
-# Bots de búsqueda estándar (Google, Bing, etc.)
-User-agent: Googlebot
-Allow: /
-Disallow: /dashboard/
-Disallow: /api/
-
-User-agent: Bingbot
-Allow: /
-Disallow: /dashboard/
-Disallow: /api/
-
-# Todos los demás bots
+# --- Resto de bots ---
 User-agent: *
 Allow: /
-Disallow: /dashboard/
-Disallow: /api/
+Disallow: /dashboard
+Disallow: /api
 
-# Sitemap para facilitar el descubrimiento
 Sitemap: https://lubenergy.com.ar/sitemap.xml

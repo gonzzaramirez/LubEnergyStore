@@ -69,7 +69,7 @@ export function Header() {
         <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
           <Link href="/" aria-label="LUB ENERGY - Ir al inicio">
             <Image
-              src="/LUB ENERGY_NG_.png"
+              src="/lub-energy-ng.png"
               alt="LUB ENERGY"
               width={160}
               height={60}
@@ -115,7 +115,7 @@ export function Header() {
         <button
           onClick={() => setIsOpen(true)}
           className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary transition-all hover:border-primary hover:bg-secondary/80 sm:h-10 sm:w-10"
-          aria-label={`Carrito${totalItems > 0 ? `, ${totalItems} productos` : ""}`}
+          aria-label={totalItems > 0 ? `Ver carrito, ${totalItems} productos` : "Ver carrito"}
         >
           <ShoppingCart className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
           {totalItems > 0 && (

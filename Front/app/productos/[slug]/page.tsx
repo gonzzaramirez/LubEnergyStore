@@ -51,14 +51,6 @@ export async function generateMetadata({
   return {
     title: `${product.name} | ${categoryName}`,
     description: `${product.description.slice(0, 155)}... Precio: ${priceFormatted}. Envíos a toda Argentina.`,
-    keywords: [
-      product.name,
-      categoryName,
-      "suplementos Argentina",
-      "comprar suplementos online",
-      "envíos Argentina",
-      product.category?.name?.toLowerCase() || "",
-    ],
     openGraph: {
       title: `${product.name} | LUB ENERGY`,
       description: product.description.slice(0, 200),

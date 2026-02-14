@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  
+  // Ocultar firma del servidor (seguridad: no revelar que es Next.js)
+  poweredByHeader: false,
+
   // Imágenes optimizadas con dominios remotos permitidos
   images: {
     remotePatterns: [
@@ -25,34 +27,29 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 días de cache
   },
   
-  // Headers de seguridad y cache
+  // Headers de seguridad y cache (el primer source que coincide gana)
   async headers() {
     return [
+      // Assets estáticos primero: cache con revalidación en segundo plano
       {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-        ],
-      },
-      // Cache agresivo para assets estáticos
-      {
-        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|svg|woff|woff2)',
+        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: 'public, max-age=86400, stale-while-revalidate=31536000',
           },
+        ],
+      },
+      // Resto (páginas): seguridad + stale-while-revalidate
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'Cache-Control', value: 'public, max-age=0, stale-while-revalidate=86400' },
         ],
       },
     ];

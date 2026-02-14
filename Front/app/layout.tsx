@@ -27,23 +27,6 @@ export const metadata: Metadata = {
   },
   description:
     "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos, aminoácidos y vitaminas. Envíos a todo el país. Las mejores marcas al mejor precio.",
-  keywords: [
-    "suplementos deportivos Argentina",
-    "proteínas Argentina",
-    "creatina Argentina",
-    "pre-entreno",
-    "whey protein",
-    "aminoácidos BCAA",
-    "vitaminas deportivas",
-    "fitness Argentina",
-    "gimnasio suplementos",
-    "tienda suplementos online",
-    "envíos Argentina",
-    "suplementos Corrientes",
-    "nutrición deportiva",
-    "masa muscular",
-    "rendimiento deportivo",
-  ],
   authors: [{ name: "LUB ENERGY" }],
   creator: "LUB ENERGY",
   publisher: "LUB ENERGY",
@@ -75,7 +58,7 @@ export const metadata: Metadata = {
       "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos y más. Envíos a todo el país.",
     images: [
       {
-        url: "/LUB ENERGY_NG_.png",
+        url: "/lub-energy-ng.png",
         width: 1200,
         height: 630,
         alt: "LUB ENERGY - Suplementos Deportivos",
@@ -173,7 +156,7 @@ const jsonLd = {
         "https://wa.me/543795056878",
       ],
       priceRange: "$$",
-      image: `${BASE_URL}/LUB ENERGY_NG_.png`,
+      image: `${BASE_URL}/lub-energy-ng.png`,
       areaServed: {
         "@type": "Country",
         name: "Argentina",
@@ -186,7 +169,7 @@ const jsonLd = {
       url: BASE_URL,
       logo: {
         "@type": "ImageObject",
-        url: `${BASE_URL}/LUB ENERGY_NG_.png`,
+        url: `${BASE_URL}/lub-energy-ng.png`,
       },
       contactPoint: {
         "@type": "ContactPoint",

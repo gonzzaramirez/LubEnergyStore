@@ -10,16 +10,6 @@ export const metadata: Metadata = {
   title: "Productos | Catálogo de Suplementos Deportivos",
   description:
     "Explora nuestro catálogo completo de suplementos deportivos. Proteínas, creatinas, pre-entrenos, aminoácidos y vitaminas. Las mejores marcas con envíos a toda Argentina.",
-  keywords: [
-    "catálogo suplementos",
-    "comprar proteínas Argentina",
-    "creatina precio",
-    "pre-entreno Argentina",
-    "suplementos deportivos online",
-    "tienda fitness Argentina",
-    "whey protein comprar",
-    "BCAA Argentina",
-  ],
   openGraph: {
     title: "Catálogo de Suplementos | LUB ENERGY",
     description:

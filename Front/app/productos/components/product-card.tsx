@@ -196,8 +196,9 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={handleAddToCart}
             size="sm"
             className=" w-full text-xs sm:text-sm cursor-pointer"
+            aria-label={`Agregar ${product.name} al carrito`}
           >
-            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden />
             Agregar al carrito
           </Button>
           <Link

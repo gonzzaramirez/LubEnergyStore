@@ -50,14 +50,6 @@ const carouselImages = [
     src: "/about/3.jpeg",
     alt: "Variedad de suplementos deportivos disponibles en LUB ENERGY",
   },
-  {
-    src: "/about/equipo-1.jpg",
-    alt: "Equipo de trabajo de LUB ENERGY preparando pedidos",
-  },
-  {
-    src: "/about/envio-1.jpg",
-    alt: "Paquete de LUB ENERGY listo para envío a todo el país",
-  },
 ];
 
 export function AboutSection() {

@@ -13,6 +13,7 @@ import { DiscountCodesModule } from './discount-codes/discount-codes.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { TaloPlaygroundModule } from './talo-playground/talo-playground.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     ProductsModule,
     OrdersModule,
     DiscountCodesModule,
+    TaloPlaygroundModule,
   ],
   controllers: [AppController],
   providers: [

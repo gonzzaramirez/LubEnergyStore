@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { TaloPlaygroundModule } from './talo-playground/talo-playground.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TaloPlaygroundModule } from './talo-playground/talo-playground.module';
     CategoriesModule,
     ProductsModule,
     OrdersModule,
+    PaymentsModule,
     DiscountCodesModule,
     TaloPlaygroundModule,
   ],

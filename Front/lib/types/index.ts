@@ -175,6 +175,13 @@ export interface Order {
   id: string;
   status: OrderStatus;
   totalAmount: number;
+  paymentProvider?: string;
+  paymentExternalId?: string;
+  paymentId?: string;
+  paymentUrl?: string;
+  paymentStatus?: string;
+  paymentWebhookAt?: string;
+  paymentAmountArs?: number;
   customerNotes?: string;
   trackingCode?: string;
   courierName?: string;
@@ -200,7 +207,9 @@ export interface CreateOrderDto {
   customerNotes?: string;
   items: {
     productId: string;
+    flavorId?: string;
     productName: string;
+    flavorName?: string;
     quantity: number;
     unitPrice: number;
   }[];
@@ -213,6 +222,22 @@ export interface CreateOrderResponse {
   totalAmount: number;
   createdAt: string;
   trackingUrl: string;
+}
+
+export interface CreateTaloPaymentDto {
+  orderId: string;
+  redirectUrl?: string;
+  motive?: string;
+}
+
+export interface CreateTaloPaymentResponse {
+  orderId: string;
+  externalId: string;
+  paymentId: string;
+  paymentStatus: string;
+  paymentUrl: string | null;
+  redirectUrl: string | null;
+  amountArs: number;
 }
 
 export interface OrderPublic {

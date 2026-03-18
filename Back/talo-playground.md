@@ -1,18 +1,25 @@
-# Talo Playground (Sandbox)
+# Integración Talo: Playground + Flujo Productivo
 
-Este playground sirve para probar Talo sin tocar el checkout productivo.
+Esta guía cubre:
 
-## 1) Configurar variables
+1. Playground técnico aislado (sandbox).
+2. Flujo real de checkout (frontend -> backend -> Talo -> webhook).
 
-Copiá `env.example` a `.env` y completá:
+## Variables de entorno backend (`Back/.env`)
+
+Configurar:
 
 - `TALO_CLIENT_ID`
 - `TALO_CLIENT_SECRET`
 - `TALO_USER_ID`
-- `TALO_ENVIRONMENT=sandbox`
-- `TALO_WEBHOOK_URL` (URL publica que apunte a `POST /talo/webhook/test`)
+- `TALO_ENVIRONMENT` (`sandbox` en desarrollo, `production` en producción)
+- `TALO_WEBHOOK_URL`
+- `TALO_REDIRECT_URL` (base `https://tu-front/pedido` o template `https://tu-front/pedido/{orderId}`)
+- `TALO_AMOUNT_MODE` (`auto` recomendado)
 
-## 2) Levantar backend
+## Entorno local (sandbox)
+
+### 1) Levantar backend
 
 ```bash
 cd Back
@@ -20,7 +27,7 @@ npm install
 npm run start:dev
 ```
 
-## 3) Exponer webhook local
+### 2) Exponer webhooks
 
 En otra terminal:
 
@@ -28,36 +35,47 @@ En otra terminal:
 ngrok http 3080
 ```
 
-Tomá la URL HTTPS de ngrok y configurala como:
+Usar la URL HTTPS de ngrok en:
 
-`TALO_WEBHOOK_URL=https://<tu-subdominio>.ngrok-free.app/talo/webhook/test`
+- `TALO_WEBHOOK_URL=https://<subdominio>.ngrok-free.app/payments/talo/webhook`
 
-## 4) Crear un pago de prueba
+Opcional para playground:
+
+- `https://<subdominio>.ngrok-free.app/talo/webhook/test`
+
+### 3) Probar playground CLI
 
 ```bash
 npm run talo:playground -- create --amount=1500
-```
-
-Respuesta esperada: `id`, `status`, `paymentUrl` y `externalId`.
-
-## 5) Consultar estado
-
-```bash
 npm run talo:playground -- get <paymentId>
-```
-
-## 6) Simular transferencia (sandbox)
-
-Si tenés un CVU de prueba:
-
-```bash
 npm run talo:playground -- simulate --cvu=<CVU> --amount=1500
 ```
 
-## Endpoints de playground en la API
+## Flujo real de checkout (dev/prod)
 
-- `POST /talo/playground/payments`
-- `GET /talo/playground/payments/:paymentId`
-- `POST /talo/webhook/test`
+1. Cliente confirma checkout en frontend.
+2. Front crea pedido (`POST /orders`).
+3. Front inicia pago (`POST /payments/talo/create` con `orderId`).
+4. Front redirige a `paymentUrl` de Talo.
+5. Talo envía webhook a `POST /payments/talo/webhook`.
+6. Backend mapea estado:
+   - `SUCCESS` -> `CONFIRMED`
+   - `EXPIRED` -> `CANCELLED`
+   - `OVERPAID` / `UNDERPAID` -> mantiene `PENDING` y agrega nota
 
-Todos son publicos para facilitar pruebas locales en sandbox.
+## Endpoints relevantes
+
+- `POST /payments/talo/create` (flujo productivo)
+- `POST /payments/talo/webhook` (flujo productivo)
+- `POST /talo/playground/payments` (playground)
+- `GET /talo/playground/payments/:paymentId` (playground)
+- `POST /talo/webhook/test` (playground)
+
+## Monto interno vs monto enviado a Talo
+
+La app guarda `totalAmount` internamente y el servicio convierte a ARS entero
+según `TALO_AMOUNT_MODE`:
+
+- `cents`: divide por 100
+- `ars`: usa el valor tal cual
+- `auto`: detecta automáticamente (recomendado para transición)

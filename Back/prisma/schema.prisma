@@ -185,6 +185,16 @@ model Order {
   status          OrderStatus @default(PENDING)
   totalAmount     Int         @map("total_amount")      // Centavos
 
+  // Integración de pagos
+  paymentProvider     String?   @map("payment_provider") @db.VarChar(50)
+  paymentExternalId   String?   @map("payment_external_id") @db.VarChar(120)
+  paymentId           String?   @map("payment_id") @db.VarChar(120)
+  paymentUrl          String?   @map("payment_url")
+  paymentStatus       String?   @map("payment_status") @db.VarChar(50)
+  paymentWebhookAt    DateTime? @map("payment_webhook_at")
+  paymentAmountArs    Int?      @map("payment_amount_ars")
+  paymentLastEventKey String?   @map("payment_last_event_key") @db.VarChar(255)
+
   // Datos del pedido
   customerNotes   String?     @map("customer_notes") @db.Text // Notas del cliente
 
@@ -205,6 +215,8 @@ model Order {
   guestCustomer   GuestCustomer? @relation(fields: [guestCustomerId], references: [id])
   items           OrderItem[]
 
+  @@index([paymentExternalId], map: "orders_payment_external_id_idx")
+  @@index([paymentId], map: "orders_payment_id_idx")
   @@map("orders")
 }
 

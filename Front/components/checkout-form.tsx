@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/select";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/products";
-import { generateWhatsAppMessage, createWhatsAppUrl } from "@/lib/whatsapp";
 import { createOrder } from "@/lib/api/order";
+import { createTaloPayment } from "@/lib/api/payments";
 import { getProvincias, getLocalidades } from "@/lib/api/georef";
 import type { Provincia, Localidad } from "@/lib/types";
 import {
@@ -37,8 +37,6 @@ interface CheckoutFormProps {
   onBack: () => void;
   appliedDiscount?: AppliedDiscount | null;
 }
-
-const WHATSAPP_NUMBER = "3795056878";
 
 export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
   const { items, totalPrice, clearCart, setIsOpen } = useCart();
@@ -65,8 +63,7 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
 
   // Estados de carga
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Estados para GeoRef
@@ -128,9 +125,11 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
   const confirmAndSubmit = async () => {
     setShowVerificationModal(false);
     setIsSubmitting(true);
+    setSubmitError(null);
+    let isRedirecting = false;
 
     try {
-      // 1. Crear el pedido en la base de datos
+      // 1. Crear pedido
       const orderResponse = await createOrder({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -157,78 +156,35 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
         totalAmount: finalTotal, // Usar total con descuento aplicado
       });
 
-      setOrderId(orderResponse.id);
-
-      // 2. Generar mensaje de WhatsApp con ID del pedido
-      const fullAddress = apartment
-        ? `${street}, ${apartment}, ${city}, ${provinceName}`
-        : `${street}, ${city}, ${provinceName}`;
-
-      const message = generateWhatsAppMessage(items, finalTotal, {
-        name: `${firstName} ${lastName}`,
-        address: fullAddress,
-        notes: notes.trim() || undefined,
-        email: email.trim(),
-        phone: phone.trim(),
-        dni: dni.trim(),
-        orderId: orderResponse.id.slice(0, 8).toUpperCase(),
-        discountCode: appliedDiscount?.code,
-        discountPercent: appliedDiscount?.discountPercent,
+      const paymentResponse = await createTaloPayment({
+        orderId: orderResponse.id,
+        redirectUrl: `${window.location.origin}/pedido/${orderResponse.id}`,
+        motive: `Pedido ${orderResponse.id.slice(0, 8).toUpperCase()}`,
       });
 
-      const whatsappUrl = createWhatsAppUrl(WHATSAPP_NUMBER, message);
+      if (!paymentResponse.paymentUrl) {
+        throw new Error(
+          "No se recibió URL de pago. Intenta nuevamente en unos minutos.",
+        );
+      }
 
-      // 3. Abrir WhatsApp
-      window.open(whatsappUrl, "_blank");
-
-      // 4. Mostrar éxito y limpiar
-      setOrderSuccess(true);
-
-      setTimeout(() => {
-        clearCart();
-        setIsOpen(false);
-      }, 3000);
-    } catch (error) {
-      // Aún así abrir WhatsApp aunque falle el guardado
-      const fullAddress = apartment
-        ? `${street}, ${apartment}, ${city}, ${provinceName}`
-        : `${street}, ${city}, ${provinceName}`;
-
-      const message = generateWhatsAppMessage(items, finalTotal, {
-        name: `${firstName} ${lastName}`,
-        address: fullAddress,
-        notes: notes.trim() || undefined,
-        discountCode: appliedDiscount?.code,
-        discountPercent: appliedDiscount?.discountPercent,
-      });
-
-      window.open(createWhatsAppUrl(WHATSAPP_NUMBER, message), "_blank");
+      isRedirecting = true;
       clearCart();
       setIsOpen(false);
+      window.location.href = paymentResponse.paymentUrl;
+      return;
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No pudimos iniciar el pago. Intenta nuevamente.",
+      );
     } finally {
-      setIsSubmitting(false);
+      if (!isRedirecting) {
+        setIsSubmitting(false);
+      }
     }
   };
-
-  // Pantalla de éxito
-  if (orderSuccess) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <CheckCircle2 className="h-8 w-8 text-green-600" />
-        </div>
-        <h2 className="mb-2 text-xl font-bold text-foreground">
-          ¡Pedido enviado!
-        </h2>
-        <p className="mb-4 text-muted-foreground">
-          Tu pedido #{orderId?.slice(0, 8).toUpperCase()} fue registrado.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Recibirás un email de confirmación cuando procesemos tu pago.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -467,6 +423,11 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
 
             {/* Submit Button */}
             <div className="pt-4">
+              {submitError && (
+                <p className="mb-3 text-center text-xs text-red-500">
+                  {submitError}
+                </p>
+              )}
               <Button
                 type="submit"
                 size="lg"
@@ -476,17 +437,17 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Enviando...
+                    Preparando pago...
                   </>
                 ) : (
                   <>
-                    <MessageCircle className="h-5 w-5" />
-                    Confirmar pedido
+                    <CreditCard className="h-5 w-5" />
+                    Confirmar e ir a pagar
                   </>
                 )}
               </Button>
               <p className="mt-4 text-center text-[10px] text-muted-foreground">
-                Te redirigiremos a WhatsApp para finalizar
+                Te redirigiremos a Talo para completar el pago
               </p>
             </div>
           </form>

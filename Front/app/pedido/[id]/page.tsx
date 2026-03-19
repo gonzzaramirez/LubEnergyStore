@@ -1,6 +1,7 @@
 import { getOrderPublic } from "@/lib/api/order";
 import { OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import { formatOrderDateTime } from "@/lib/date-format";
 import {
   Package,
   CheckCircle,
@@ -29,17 +30,6 @@ const statusIndex: Record<OrderStatus, number> = {
   SHIPPED: 2,
   CANCELLED: -1,
 };
-
-function formatDate(dateString?: string): string {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default async function OrderTrackingPage({ params }: PageProps) {
   const { id } = await params;
@@ -257,7 +247,7 @@ export default async function OrderTrackingPage({ params }: PageProps) {
               <span className="text-sm font-medium">Fecha del pedido</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {formatDate(order.createdAt)}
+              {formatOrderDateTime(order.createdAt)}
             </p>
           </div>
         </div>

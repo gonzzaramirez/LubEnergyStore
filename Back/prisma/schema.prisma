@@ -194,6 +194,9 @@ model Order {
   paymentWebhookAt    DateTime? @map("payment_webhook_at")
   paymentAmountArs    Int?      @map("payment_amount_ars")
   paymentLastEventKey String?   @map("payment_last_event_key") @db.VarChar(255)
+  paymentInitiatedAt           DateTime? @map("payment_initiated_at")
+  pendingPaymentReminderSentAt DateTime? @map("pending_payment_reminder_sent_at")
+  pendingPaymentOwnerNotifiedAt DateTime? @map("pending_payment_owner_notified_at")
 
   // Datos del pedido
   customerNotes   String?     @map("customer_notes") @db.Text // Notas del cliente

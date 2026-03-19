@@ -188,6 +188,7 @@ export class PaymentsService {
         paymentUrl: payment.payment_url || null,
         paymentStatus: payment.payment_status,
         paymentAmountArs: amountArs,
+        paymentInitiatedAt: new Date(),
       },
     });
 

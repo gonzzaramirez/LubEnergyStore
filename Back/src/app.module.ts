@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { TaloPlaygroundModule } from './talo-playground/talo-playground.module';
 import { PaymentsModule } from './payments/payments.module';
+import { KapsoModule } from './kapso/kapso.module';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { PaymentsModule } from './payments/payments.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     // Rate limiting: 100 requests por minuto por IP
     ThrottlerModule.forRoot([
       {
@@ -31,6 +34,7 @@ import { PaymentsModule } from './payments/payments.module';
     ]),
     PrismaModule,
     AuthModule,
+    KapsoModule,
     EmailModule,
     CategoriesModule,
     ProductsModule,

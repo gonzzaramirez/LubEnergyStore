@@ -204,93 +204,143 @@ export class PaymentsService {
   }
 
   async processTaloWebhook(payload: unknown) {
-    const rawBody =
-      typeof payload === 'string' ? payload : JSON.stringify(payload ?? {});
-    const client = this.getClient();
-    const parsed = client.webhooks.parseRaw(rawBody);
-    const payment = await client.payments.get(parsed.event.paymentId);
-    const eventKey = `${payment.id}:${payment.payment_status}`;
+    try {
+      const rawBody =
+        typeof payload === 'string' ? payload : JSON.stringify(payload ?? {});
+      const client = this.getClient();
+      const parsed = client.webhooks.parseRaw(rawBody);
+      const payment = await client.payments.get(parsed.event.paymentId);
+      const eventKey = `${payment.id}:${payment.payment_status}`;
 
-    const order =
-      (await this.prisma.order.findFirst({
-        where: { id: parsed.event.externalId, deletedAt: null },
-      })) ||
-      (await this.prisma.order.findFirst({
-        where: { paymentId: payment.id, deletedAt: null },
-      }));
+      const externalId =
+        typeof parsed.event.externalId === 'string'
+          ? parsed.event.externalId.trim()
+          : parsed.event.externalId;
 
-    if (!order) {
-      throw new NotFoundException(
-        `No se encontró pedido para externalId=${parsed.event.externalId} o paymentId=${payment.id}`,
+      const order =
+        (externalId
+          ? await this.prisma.order.findFirst({
+              where: { id: externalId, deletedAt: null },
+            })
+          : null) ||
+        (await this.prisma.order.findFirst({
+          where: { paymentId: payment.id, deletedAt: null },
+        }));
+
+      if (!order) {
+        this.logger.warn(
+          `[TALO webhook] Pedido no encontrado: externalId=${externalId ?? '(vacío)'} paymentId=${payment.id}`,
+        );
+        throw new NotFoundException(
+          `No se encontró pedido para externalId=${externalId} o paymentId=${payment.id}`,
+        );
+      }
+
+      if (order.paymentLastEventKey === eventKey) {
+        this.logger.log(
+          `[TALO webhook] Evento duplicado ignorado orderId=${order.id} ${eventKey}`,
+        );
+        return {
+          ok: true,
+          duplicated: true,
+          orderId: order.id,
+          paymentId: payment.id,
+          paymentStatus: payment.payment_status,
+        };
+      }
+
+      this.logger.log(
+        `[TALO webhook] Procesando orderId=${order.id} paymentId=${payment.id} apiStatus=${payment.payment_status} orderStatus=${order.status}`,
       );
-    }
 
-    if (order.paymentLastEventKey === eventKey) {
-      return {
-        ok: true,
-        duplicated: true,
-        orderId: order.id,
-        paymentId: payment.id,
-        paymentStatus: payment.payment_status,
-      };
-    }
-
-    if (
-      payment.payment_status === 'SUCCESS' &&
-      order.status === OrderStatus.PENDING
-    ) {
-      await this.ordersService.updateStatus(order.id, {
-        status: OrderStatusUpdate.CONFIRMED,
-        adminNotes: this.buildAdminNote(
-          order.adminNotes,
-          `[TALO] Pago confirmado por webhook (${payment.id})`,
-        ),
-      });
-    } else if (
-      payment.payment_status === 'EXPIRED' &&
-      order.status === OrderStatus.PENDING
-    ) {
-      await this.ordersService.updateStatus(order.id, {
-        status: OrderStatusUpdate.CANCELLED,
-        adminNotes: this.buildAdminNote(
-          order.adminNotes,
-          `[TALO] Pago expirado por webhook (${payment.id})`,
-        ),
-      });
-    } else if (
-      payment.payment_status === 'OVERPAID' ||
-      payment.payment_status === 'UNDERPAID'
-    ) {
+      // Reflejar de inmediato el estado del pago según Talo (sin paymentLastEventKey).
+      // Así, si falla la confirmación del pedido (p. ej. stock), en BD igual ves paymentStatus=SUCCESS y podés diagnosticar.
+      // paymentLastEventKey solo se escribe al final: si algo falla antes, Talo puede reintentar el webhook.
       await this.prisma.order.update({
         where: { id: order.id },
         data: {
-          adminNotes: this.buildAdminNote(
-            order.adminNotes,
-            `[TALO] Pago ${payment.payment_status} requiere revisión (${payment.id})`,
-          ),
+          paymentProvider: 'TALO',
+          paymentExternalId: externalId || order.id,
+          paymentId: payment.id,
+          paymentUrl: payment.payment_url || order.paymentUrl,
+          paymentStatus: payment.payment_status,
+          paymentWebhookAt: new Date(),
         },
       });
-    }
 
-    await this.prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentProvider: 'TALO',
-        paymentExternalId: parsed.event.externalId || order.id,
+      if (
+        payment.payment_status === 'SUCCESS' &&
+        order.status === OrderStatus.PENDING
+      ) {
+        try {
+          await this.ordersService.updateStatus(order.id, {
+            status: OrderStatusUpdate.CONFIRMED,
+            adminNotes: this.buildAdminNote(
+              order.adminNotes,
+              `[TALO] Pago confirmado por webhook (${payment.id})`,
+            ),
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          this.logger.error(
+            `[TALO webhook] Pago SUCCESS pero confirmación del pedido falló (orderId=${order.id}): ${msg}`,
+            err instanceof Error ? err.stack : undefined,
+          );
+          await this.prisma.order.update({
+            where: { id: order.id },
+            data: {
+              adminNotes: this.buildAdminNote(
+                order.adminNotes,
+                `[TALO] ERROR al confirmar tras pago OK: ${msg}`,
+              ),
+            },
+          });
+          throw err;
+        }
+      } else if (
+        payment.payment_status === 'EXPIRED' &&
+        order.status === OrderStatus.PENDING
+      ) {
+        await this.ordersService.updateStatus(order.id, {
+          status: OrderStatusUpdate.CANCELLED,
+          adminNotes: this.buildAdminNote(
+            order.adminNotes,
+            `[TALO] Pago expirado por webhook (${payment.id})`,
+          ),
+        });
+      } else if (
+        payment.payment_status === 'OVERPAID' ||
+        payment.payment_status === 'UNDERPAID'
+      ) {
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: {
+            adminNotes: this.buildAdminNote(
+              order.adminNotes,
+              `[TALO] Pago ${payment.payment_status} requiere revisión (${payment.id})`,
+            ),
+          },
+        });
+      }
+
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentLastEventKey: eventKey,
+        },
+      });
+
+      return {
+        ok: true,
+        orderId: order.id,
         paymentId: payment.id,
-        paymentUrl: payment.payment_url || order.paymentUrl,
         paymentStatus: payment.payment_status,
-        paymentWebhookAt: new Date(),
-        paymentLastEventKey: eventKey,
-      },
-    });
-
-    return {
-      ok: true,
-      orderId: order.id,
-      paymentId: payment.id,
-      paymentStatus: payment.payment_status,
-      event: parsed.event,
-    };
+        event: parsed.event,
+      };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      this.logger.error(`[TALO webhook] Fallo: ${message}`, e instanceof Error ? e.stack : undefined);
+      throw e;
+    }
   }
 }

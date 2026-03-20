@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 // Tipo para el producto adaptado al formato del componente
 interface DisplayProduct {
@@ -53,6 +55,7 @@ export function ProductGrid({
   const [sortBy, setSortBy] = useState<"cheapest" | "expensive" | "none">(
     "none"
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -115,6 +118,11 @@ export function ProductGrid({
       }
     }
 
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter((p) => p.name.toLowerCase().includes(q));
+    }
+
     // Ordenamiento
     if (sortBy === "cheapest") {
       result = [...result].sort((a, b) => a.price - b.price);
@@ -123,7 +131,7 @@ export function ProductGrid({
     }
 
     return result;
-  }, [selectedCategory, products, categories, sortBy]);
+  }, [selectedCategory, products, categories, sortBy, searchQuery]);
 
   // Manejar el cambio de categoría
   const handleCategoryChange = (category: Category | number) => {
@@ -282,12 +290,28 @@ export function ProductGrid({
 
         {/* Sort Filter - Encima de los productos, alineado a la derecha - Solo cuando no es featuredOnly */}
         {!isLoading && !featuredOnly && (
-          <div className="mb-4 flex justify-end sm:mb-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
+            <div className="relative w-full min-w-0 sm:max-w-[260px]">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                id="product-search"
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar por nombre..."
+                autoComplete="off"
+                aria-label="Buscar productos por nombre"
+                className="h-9 rounded-full border border-border bg-secondary pl-9 pr-3 text-sm font-medium text-foreground shadow-none hover:border-primary/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
             <Select
               value={sortBy}
               onValueChange={(value: any) => setSortBy(value)}
             >
-              <SelectTrigger className="h-9 w-[180px] border border-border bg-secondary text-sm font-medium text-foreground hover:border-primary/50 hover:text-foreground focus:ring-0 sm:w-[200px]">
+              <SelectTrigger className="h-9 w-full border border-border bg-secondary text-sm font-medium text-foreground hover:border-primary/50 hover:text-foreground focus:ring-0 sm:w-[200px]">
                 <SelectValue placeholder="Ordenar por:" />
               </SelectTrigger>
               <SelectContent>
@@ -349,7 +373,9 @@ export function ProductGrid({
         {!isLoading && filteredProducts.length === 0 && (
           <div className="py-8 text-center sm:py-12" role="status">
             <p className="text-sm text-muted-foreground sm:text-base">
-              No hay productos en esta categoría
+              {searchQuery.trim()
+                ? "No hay productos que coincidan con tu búsqueda"
+                : "No hay productos en esta categoría"}
             </p>
           </div>
         )}

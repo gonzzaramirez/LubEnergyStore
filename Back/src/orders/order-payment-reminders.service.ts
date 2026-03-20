@@ -3,7 +3,6 @@ import { Cron } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { KapsoService } from '../kapso/kapso.service';
 
 const REMINDER_AFTER_MS = 24 * 60 * 60 * 1000;
 
@@ -14,53 +13,11 @@ export class OrderPaymentRemindersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-    private readonly kapsoService: KapsoService,
   ) {}
 
   private getTrackingUrl(orderId: string): string {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return `${baseUrl}/pedido/${orderId}`;
-  }
-
-  private buildOwnerAbandonmentWaBody(order: {
-    id: string;
-    totalAmount: number;
-    paymentUrl: string | null;
-    guestCustomer: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      phone: string;
-      dni: string;
-      street: string;
-      apartment: string | null;
-      city: string;
-      province: string;
-    };
-    items: { productName: string; quantity: number; unitPrice: number }[];
-  }): string {
-    const short = order.id.slice(0, 8).toUpperCase();
-    const lines = [
-      `Lub Energy — Pago sin confirmar (24h)`,
-      `Pedido #${short}`,
-      `Total: $${order.totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`,
-      '',
-      `Cliente: ${order.guestCustomer.firstName} ${order.guestCustomer.lastName}`,
-      `Email: ${order.guestCustomer.email}`,
-      `Tel: ${order.guestCustomer.phone}`,
-      `DNI: ${order.guestCustomer.dni}`,
-      `Envío: ${order.guestCustomer.street} ${order.guestCustomer.apartment || ''}, ${order.guestCustomer.city}, ${order.guestCustomer.province}`,
-      '',
-      'Ítems:',
-      ...order.items.map(
-        (i) =>
-          `- ${i.productName} x${i.quantity} ($${(i.unitPrice * i.quantity).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')})`,
-      ),
-    ];
-    if (order.paymentUrl) {
-      lines.push('', `Pagar (Talo): ${order.paymentUrl}`);
-    }
-    return lines.join('\n');
   }
 
   @Cron('0 */15 * * * *')
@@ -147,15 +104,6 @@ export class OrderPaymentRemindersService {
         if (!emailOk) {
           continue;
         }
-        await this.kapsoService.sendTextToOwner(
-          this.buildOwnerAbandonmentWaBody({
-            id: order.id,
-            totalAmount: order.totalAmount,
-            paymentUrl: order.paymentUrl,
-            guestCustomer: order.guestCustomer,
-            items: order.items,
-          }),
-        );
         await this.prisma.order.update({
           where: { id: order.id },
           data: { pendingPaymentOwnerNotifiedAt: new Date() },

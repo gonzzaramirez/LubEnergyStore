@@ -4,7 +4,6 @@ import {
   EmailService,
   type OwnerOrderNotificationData,
 } from '../email/email.service';
-import { KapsoService } from '../kapso/kapso.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto, UpdateTrackingDto, OrderStatusUpdate } from './dto/update-order.dto';
 import { OrderStatus } from '@prisma/client';
@@ -14,38 +13,11 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-    private readonly kapsoService: KapsoService,
   ) {}
 
   private getTrackingUrl(orderId: string): string {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return `${baseUrl}/pedido/${orderId}`;
-  }
-
-  private buildOwnerSaleWaBody(data: OwnerOrderNotificationData): string {
-    const short = data.orderId.slice(0, 8).toUpperCase();
-    const fmt = (n: number) =>
-      n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    const lines = [
-      `Lub Energy — Venta confirmada`,
-      `Pedido #${short}`,
-      `Total: $${fmt(data.totalAmount)}`,
-      '',
-      `Cliente: ${data.customer.firstName} ${data.customer.lastName}`,
-      `Email: ${data.customer.email}`,
-      `Tel: ${data.customer.phone}`,
-      `DNI: ${data.customer.dni}`,
-      `Envío: ${data.customer.street} ${data.customer.apartment || ''}, ${data.customer.city}, ${data.customer.province}`,
-      '',
-      'Ítems:',
-      ...data.items.map(
-        (i) =>
-          `- ${i.productName} x${i.quantity} ($${fmt(i.unitPrice * i.quantity)})`,
-      ),
-      '',
-      `Seguimiento: ${data.trackingUrl}`,
-    ];
-    return lines.join('\n');
   }
 
   async create(createOrderDto: CreateOrderDto) {
@@ -327,9 +299,6 @@ export class OrdersService {
       }
       try {
         await this.emailService.sendOwnerOrderSaleConfirmed(ownerPayload);
-        await this.kapsoService.sendTextToOwner(
-          this.buildOwnerSaleWaBody(ownerPayload),
-        );
       } catch (error) {
         console.error('Error al notificar al dueño por venta confirmada:', error);
       }

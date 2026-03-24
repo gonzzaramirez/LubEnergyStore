@@ -2,6 +2,7 @@
 
 import { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import { formatOrderDateTime } from "@/lib/format-datetime";
 import {
   Dialog,
   DialogContent,
@@ -39,17 +40,6 @@ const statusConfig: Record<
   CANCELLED: { label: "Cancelado", variant: "destructive", color: "text-red-600" },
 };
 
-function formatDate(dateString?: string): string {
-  if (!dateString) return "-";
-  return new Date(dateString).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function OrderDetailDialog({
   order,
   open,
@@ -73,7 +63,7 @@ export function OrderDetailDialog({
             </DialogTitle>
           </div>
           <DialogDescription>
-            Creado el {formatDate(order.createdAt)}
+            Creado el {formatOrderDateTime(order.createdAt)}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,17 +73,17 @@ export function OrderDetailDialog({
             <div className={`p-3 rounded-lg bg-secondary/50 ${order.status !== "CANCELLED" ? "border-2 border-green-500" : ""}`}>
               <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Creado</p>
-              <p className="text-xs font-medium">{formatDate(order.createdAt)}</p>
+              <p className="text-xs font-medium">{formatOrderDateTime(order.createdAt)}</p>
             </div>
             <div className={`p-3 rounded-lg bg-secondary/50 ${order.confirmedAt ? "border-2 border-green-500" : ""}`}>
               <CreditCard className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Confirmado</p>
-              <p className="text-xs font-medium">{formatDate(order.confirmedAt)}</p>
+              <p className="text-xs font-medium">{formatOrderDateTime(order.confirmedAt)}</p>
             </div>
             <div className={`p-3 rounded-lg bg-secondary/50 ${order.shippedAt ? "border-2 border-green-500" : ""}`}>
               <Truck className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Enviado</p>
-              <p className="text-xs font-medium">{formatDate(order.shippedAt)}</p>
+              <p className="text-xs font-medium">{formatOrderDateTime(order.shippedAt)}</p>
             </div>
           </div>
 

@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Order, OrderStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import { formatOrderDateTime } from "@/lib/format-datetime";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,16 +33,6 @@ const statusConfig: Record<
   SHIPPED: { label: "Enviado", variant: "secondary" },
   CANCELLED: { label: "Cancelado", variant: "destructive" },
 };
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export function getColumns({
   onView,
@@ -129,7 +120,7 @@ export function getColumns({
       header: "Fecha",
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string;
-        return <span className="text-sm">{formatDate(date)}</span>;
+        return <span className="text-sm">{formatOrderDateTime(date)}</span>;
       },
     },
     {

@@ -77,6 +77,40 @@ export class OrdersService {
       return newOrder;
     });
 
+    try {
+      const adminEmail = process.env.ADMIN_ORDER_EMAIL?.trim();
+      const gc = order.guestCustomer;
+      if (adminEmail && process.env.RESEND_API_KEY && gc) {
+        await this.emailService.sendAdminNewOrderNotification({
+          orderId: order.id,
+          createdAt: order.createdAt,
+          customer: {
+            firstName: gc.firstName,
+            lastName: gc.lastName,
+            email: gc.email,
+            phone: gc.phone,
+            dni: gc.dni,
+            street: gc.street,
+            apartment: gc.apartment || undefined,
+            city: gc.city,
+            province: gc.province,
+          },
+          items: order.items.map((item) => ({
+            productName: item.flavorName
+              ? `${item.productName} (${item.flavorName})`
+              : item.productName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+          totalAmount: order.totalAmount,
+          customerNotes: order.customerNotes,
+          trackingUrl: this.getTrackingUrl(order.id),
+        });
+      }
+    } catch (error) {
+      console.error('Error al enviar email de aviso al admin:', error);
+    }
+
     return {
       id: order.id,
       status: order.status,

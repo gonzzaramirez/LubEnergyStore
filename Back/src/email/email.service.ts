@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
+import {
+  formatDateTimeEsAr,
+  formatYearInAppTimezone,
+} from '../common/format-datetime';
 
 interface OrderItem {
   productName: string;
@@ -26,6 +30,16 @@ interface OrderEmailData {
   totalAmount: number;
   trackingCode?: string;
   courierName?: string;
+  trackingUrl: string;
+}
+
+interface AdminNewOrderEmailData {
+  orderId: string;
+  createdAt: Date;
+  customer: CustomerData;
+  items: OrderItem[];
+  totalAmount: number;
+  customerNotes?: string | null;
   trackingUrl: string;
 }
 
@@ -102,6 +116,7 @@ export class EmailService {
         /* Verde suave para fondo, verde oscuro para texto */
         .status-confirmed { background-color: #ecfdf5; color: #047857; border: 1px solid #d1fae5; }
         .status-shipped { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+        .status-new { background-color: #fefce8; color: #a16207; border: 1px solid #fef08a; }
 
         /* ITEMS TABLE */
         .items-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 24px 0; }
@@ -172,6 +187,10 @@ export class EmailService {
     `;
   }
 
+  private getWhatsappWaDigits(): string {
+    return (process.env.WHATSAPP_WA_NUMBER || '543795056878').replace(/\D/g, '');
+  }
+
   private generateHeader(): string {
     return `
       <div class="header">
@@ -180,17 +199,19 @@ export class EmailService {
     `;
   }
 
-  private generateFooter(whatsappNumber: string = '5491112345678'): string {
+  private generateFooter(whatsappNumber?: string): string {
+    const wa = (whatsappNumber || this.getWhatsappWaDigits()).replace(/\D/g, '');
+    const year = formatYearInAppTimezone();
     return `
       <div class="footer">
         <p class="footer-text">¿Necesitás ayuda con tu pedido?</p>
         
-        <a href="https://wa.me/${whatsappNumber}" class="wp-link">
+        <a href="https://wa.me/${wa}" class="wp-link">
           💬 Contactar por WhatsApp
         </a>
         
         <p class="footer-text" style="margin-top: 30px; font-size: 12px;">
-          © ${new Date().getFullYear()} ${this.storeName}.
+          © ${year} ${this.storeName}.
         </p>
 
         <div class="legal-disclaimer">
@@ -342,7 +363,90 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      this.logger.error(`Error enviando email: ${error.message}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error enviando email: ${msg}`);
+      return false;
+    }
+  }
+
+  async sendAdminNewOrderNotification(
+    data: AdminNewOrderEmailData,
+  ): Promise<boolean> {
+    const adminEmail = process.env.ADMIN_ORDER_EMAIL?.trim();
+    if (!adminEmail) {
+      return false;
+    }
+    if (!process.env.RESEND_API_KEY) {
+      return false;
+    }
+
+    const shortId = data.orderId.slice(0, 8).toUpperCase();
+    const notesBlock =
+      data.customerNotes && data.customerNotes.trim()
+        ? `<p class="info-sub" style="margin-top: 12px;"><strong>Notas del cliente:</strong> ${data.customerNotes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`
+        : '';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${this.getBaseStyles()}
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="container">
+            ${this.generateHeader()}
+            <div class="content">
+              <div style="text-align: center;">
+                <span class="status-pill status-new">Nuevo pedido</span>
+                <h2 class="h1">Pedido #${shortId}</h2>
+                <p class="text" style="text-align: left;">
+                  Se registró un pedido el <strong>${formatDateTimeEsAr(data.createdAt)}</strong>.
+                  El cliente puede contactar por WhatsApp después; conviene revisar el panel o el enlace de seguimiento para no perder la venta.
+                </p>
+              </div>
+
+              <div class="info-card">
+                <p class="info-title">Cliente</p>
+                <p class="info-text">${data.customer.firstName} ${data.customer.lastName}</p>
+                <p class="info-sub">${data.customer.email}</p>
+                <p class="info-sub">Tel: ${data.customer.phone} · DNI: ${data.customer.dni}</p>
+                <p class="info-sub" style="margin-top: 8px;">${data.customer.street} ${data.customer.apartment || ''}</p>
+                <p class="info-sub">${data.customer.city}, ${data.customer.province}</p>
+                ${notesBlock}
+              </div>
+
+              ${this.generateItemsTable(data.items)}
+
+              <div class="total-section">
+                <span class="total-label">Total</span>
+                <span class="total-amount">${this.formatPrice(data.totalAmount)}</span>
+              </div>
+
+              <div class="btn-container">
+                <a href="${data.trackingUrl}" class="btn">Ver seguimiento público</a>
+              </div>
+            </div>
+            ${this.generateFooter()}
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    try {
+      await this.resend.emails.send({
+        from: `${this.storeName} <${this.fromEmail}>`,
+        to: adminEmail,
+        subject: `Nuevo pedido #${shortId} — ${this.storeName}`,
+        html,
+      });
+      return true;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error enviando email al admin: ${msg}`);
       return false;
     }
   }

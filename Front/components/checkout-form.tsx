@@ -38,7 +38,8 @@ interface CheckoutFormProps {
   appliedDiscount?: AppliedDiscount | null;
 }
 
-const WHATSAPP_NUMBER = "3795056878";
+const WHATSAPP_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_WA_NUMBER || "543795056878";
 
 export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
   const { items, totalPrice, clearCart, setIsOpen } = useCart();
@@ -178,8 +179,8 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
 
       const whatsappUrl = createWhatsAppUrl(WHATSAPP_NUMBER, message);
 
-      // 3. Abrir WhatsApp
-      window.open(whatsappUrl, "_blank");
+      // 3. Abrir WhatsApp (misma pestaña: evita bloqueo de popups en móvil tras await)
+      window.location.assign(whatsappUrl);
 
       // 4. Mostrar éxito y limpiar
       setOrderSuccess(true);
@@ -202,7 +203,7 @@ export function CheckoutForm({ onBack, appliedDiscount }: CheckoutFormProps) {
         discountPercent: appliedDiscount?.discountPercent,
       });
 
-      window.open(createWhatsAppUrl(WHATSAPP_NUMBER, message), "_blank");
+      window.location.assign(createWhatsAppUrl(WHATSAPP_NUMBER, message));
       clearCart();
       setIsOpen(false);
     } finally {

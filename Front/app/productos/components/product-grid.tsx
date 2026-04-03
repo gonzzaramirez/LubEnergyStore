@@ -34,6 +34,8 @@ interface DisplayProduct {
   discountEndDate?: string;
   minQuantityDiscount?: number;
   quantityDiscountPercent?: number;
+  /** Sin stock vendible (misma lógica que la ficha: suma de sabores o stock del producto) */
+  isOutOfStock: boolean;
 }
 
 export interface ProductGridProps {
@@ -91,6 +93,10 @@ export function ProductGrid({
             discountEndDate: p.discountEndDate,
             minQuantityDiscount: p.minQuantityDiscount,
             quantityDiscountPercent: p.quantityDiscountPercent,
+            isOutOfStock:
+              p.flavors && p.flavors.length > 0
+                ? p.flavors.reduce((acc, f) => acc + f.stockQuantity, 0) === 0
+                : (p.stockQuantity ?? 0) === 0,
           }));
 
         setProducts(adaptedProducts);

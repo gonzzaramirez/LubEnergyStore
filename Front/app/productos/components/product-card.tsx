@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface DisplayProduct {
   id: string;
@@ -27,6 +28,7 @@ interface DisplayProduct {
   discountEndDate?: string;
   minQuantityDiscount?: number;
   quantityDiscountPercent?: number;
+  isOutOfStock: boolean;
 }
 
 interface ProductCardProps {
@@ -67,6 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (product.isOutOfStock) return;
 
     // Convertir categoría string a tipo Category del carrito
     const categoryName = product.category.toLowerCase().replace(/\s+/g, "-");
@@ -111,6 +114,14 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       {/* Badges Container */}
       <div className="absolute left-2 top-2 z-10 flex flex-col gap-1 sm:left-3 sm:top-3">
+        {product.isOutOfStock && (
+          <Badge
+            variant="secondary"
+            className="border border-border bg-muted text-[10px] font-semibold text-muted-foreground sm:text-xs"
+          >
+            Sin stock
+          </Badge>
+        )}
         {/* Badge de descuento */}
         {hasActiveDiscount && (
           <Badge className="bg-red-500 hover:bg-red-500 text-[10px] sm:text-xs font-semibold">
@@ -143,7 +154,10 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-contain transition-transform duration-300 group-hover:scale-110"
+            className={cn(
+              "object-contain transition-transform duration-300 group-hover:scale-110",
+              product.isOutOfStock && "grayscale opacity-60"
+            )}
           />
         </div>
       </div>
@@ -195,11 +209,22 @@ export function ProductCard({ product }: ProductCardProps) {
           <Button
             onClick={handleAddToCart}
             size="sm"
-            className=" w-full text-xs sm:text-sm cursor-pointer"
-            aria-label={`Agregar ${product.name} al carrito`}
+            disabled={product.isOutOfStock}
+            className="w-full text-xs sm:text-sm cursor-pointer disabled:cursor-not-allowed"
+            aria-label={
+              product.isOutOfStock
+                ? `${product.name} sin stock`
+                : `Agregar ${product.name} al carrito`
+            }
           >
-            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden />
-            Agregar al carrito
+            {product.isOutOfStock ? (
+              "Sin stock"
+            ) : (
+              <>
+                <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden />
+                Agregar al carrito
+              </>
+            )}
           </Button>
           <Link
             href={`/productos/${product.slug}`}

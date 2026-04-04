@@ -10,6 +10,7 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { EmailModule } from './email/email.module';
 import { DiscountCodesModule } from './discount-codes/discount-codes.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
@@ -34,6 +35,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     ProductsModule,
     OrdersModule,
     DiscountCodesModule,
+    IntegrationsModule,
   ],
   controllers: [AppController],
   providers: [

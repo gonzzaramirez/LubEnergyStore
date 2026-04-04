@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { CreateDiscountCodeDto } from './dto/create-discount-code.dto';
+import { CreateSaasDiscountCodeDto } from './dto/create-saas-discount-code.dto';
 import { UpdateDiscountCodeDto } from './dto/update-discount-code.dto';
 import { ValidateDiscountCodeDto } from './dto/validate-discount-code.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -34,6 +35,36 @@ export class DiscountCodesService {
     return this.prisma.discountCode.create({
       data: dataToCreate,
     });
+  }
+
+  /**
+   * Alta desde el SaaS (API key). Si el código ya existe, devuelve el registro existente (idempotente).
+   */
+  async createFromSaas(dto: CreateSaasDiscountCodeDto) {
+    const codeUpper = dto.code.toUpperCase();
+    const existing = await this.prisma.discountCode.findUnique({
+      where: { code: codeUpper },
+    });
+    if (existing) {
+      return { idempotent: true as const, discountCode: existing };
+    }
+
+    const discountCode = await this.prisma.discountCode.create({
+      data: {
+        code: codeUpper,
+        description: dto.description,
+        discountPercent: dto.discountPercent,
+        isActive: dto.isActive ?? true,
+        gymId: dto.gymId,
+        gymName: dto.gymName.trim(),
+        ...(dto.validFrom ? { validFrom: new Date(dto.validFrom) } : {}),
+        ...(dto.validUntil ? { validUntil: new Date(dto.validUntil) } : {}),
+        ...(dto.usageLimit !== undefined ? { usageLimit: dto.usageLimit } : {}),
+        ...(dto.minOrderAmount !== undefined ? { minOrderAmount: dto.minOrderAmount } : {}),
+      },
+    });
+
+    return { idempotent: false as const, discountCode };
   }
 
   findAll() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,7 @@ import { formatPrice } from "@/lib/products";
 
 export default function DescuentosPage() {
   const [codes, setCodes] = useState<DiscountCode[]>([]);
+  const [gymFilter, setGymFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -62,7 +63,19 @@ export default function DescuentosPage() {
     validUntil: "",
     usageLimit: undefined,
     minOrderAmount: undefined,
+    gymId: undefined,
+    gymName: "",
   });
+
+  const filteredCodes = useMemo(() => {
+    const q = gymFilter.trim().toLowerCase();
+    if (!q) return codes;
+    return codes.filter((c) => {
+      if (c.gymName?.toLowerCase().includes(q)) return true;
+      if (c.gymId !== undefined && String(c.gymId).includes(q)) return true;
+      return false;
+    });
+  }, [codes, gymFilter]);
 
   useEffect(() => {
     loadCodes();
@@ -90,6 +103,8 @@ export default function DescuentosPage() {
       validUntil: "",
       usageLimit: undefined,
       minOrderAmount: undefined,
+      gymId: undefined,
+      gymName: "",
     });
     setSelectedCode(null);
   };
@@ -110,6 +125,8 @@ export default function DescuentosPage() {
       validUntil: code.validUntil ? code.validUntil.split("T")[0] : "",
       usageLimit: code.usageLimit || undefined,
       minOrderAmount: code.minOrderAmount || undefined,
+      gymId: code.gymId,
+      gymName: code.gymName || "",
     });
     setShowDialog(true);
   };
@@ -122,12 +139,24 @@ export default function DescuentosPage() {
 
     try {
       setIsSaving(true);
-      const dataToSend = {
+      const dataToSend: CreateDiscountCodeDto = {
         ...formData,
         code: formData.code.toUpperCase(),
         validFrom: formData.validFrom || undefined,
         validUntil: formData.validUntil || undefined,
+        description: formData.description || undefined,
+        gymName: formData.gymName?.trim() || undefined,
+        gymId:
+          formData.gymId !== undefined && formData.gymId !== null
+            ? Number(formData.gymId)
+            : undefined,
       };
+      if (
+        dataToSend.gymId !== undefined &&
+        (Number.isNaN(dataToSend.gymId) || dataToSend.gymId < 0)
+      ) {
+        delete dataToSend.gymId;
+      }
 
       if (selectedCode) {
         await updateDiscountCode(selectedCode.id, dataToSend);
@@ -198,15 +227,37 @@ export default function DescuentosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Ticket className="h-5 w-5" />
-            Códigos Activos
-          </CardTitle>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5" />
+              Códigos Activos
+            </CardTitle>
+            <div className="w-full sm:max-w-xs">
+              <Input
+                placeholder="Filtrar por gimnasio o ID…"
+                value={gymFilter}
+                onChange={(e) => setGymFilter(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : filteredCodes.length === 0 && codes.length > 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Ningún código coincide con el filtro
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => setGymFilter("")}
+              >
+                Limpiar filtro
+              </Button>
             </div>
           ) : codes.length === 0 ? (
             <div className="text-center py-8">
@@ -222,6 +273,8 @@ export default function DescuentosPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
+                  <TableHead>Gimnasio</TableHead>
+                  <TableHead className="hidden md:table-cell">ID gym</TableHead>
                   <TableHead>Descuento</TableHead>
                   <TableHead>Validez</TableHead>
                   <TableHead>Usos</TableHead>
@@ -230,7 +283,7 @@ export default function DescuentosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {codes.map((code) => (
+                {filteredCodes.map((code) => (
                   <TableRow key={code.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -248,6 +301,20 @@ export default function DescuentosPage() {
                         <p className="text-xs text-muted-foreground">
                           {code.description}
                         </p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {code.gymName ? (
+                        <span className="text-sm font-medium">{code.gymName}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {code.gymId !== undefined ? (
+                        <span className="font-mono text-sm">{code.gymId}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -375,6 +442,35 @@ export default function DescuentosPage() {
                 }
                 placeholder="Promo de verano para clientes nuevos"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Gimnasio (opcional)</Label>
+                <Input
+                  value={formData.gymName ?? ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, gymName: e.target.value })
+                  }
+                  placeholder="Nombre del gym (origen SaaS)"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>ID gym (opcional)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.gymId ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setFormData({
+                      ...formData,
+                      gymId: v === "" ? undefined : Number(v),
+                    });
+                  }}
+                  placeholder="Ej. 42"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

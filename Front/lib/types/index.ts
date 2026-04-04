@@ -103,6 +103,10 @@ export interface DiscountCode {
   usageLimit?: number;
   usageCount: number;
   minOrderAmount?: number;
+  /** Origen SaaS (gym.gym_id) */
+  gymId?: number;
+  /** Snapshot de gym.name al crear el cupón */
+  gymName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,6 +120,8 @@ export interface CreateDiscountCodeDto {
   validUntil?: string;
   usageLimit?: number;
   minOrderAmount?: number;
+  gymId?: number;
+  gymName?: string;
 }
 
 export interface UpdateDiscountCodeDto extends Partial<CreateDiscountCodeDto> {}

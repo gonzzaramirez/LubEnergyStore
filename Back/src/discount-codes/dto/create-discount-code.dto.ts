@@ -1,4 +1,15 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt, IsDateString, Min, Max, Matches } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsInt,
+  IsDateString,
+  Min,
+  Max,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateDiscountCodeDto {
   @IsString()
@@ -37,4 +48,14 @@ export class CreateDiscountCodeDto {
   @IsOptional()
   @Min(0)
   minOrderAmount?: number; // Monto mínimo de pedido
+
+  /** Origen SaaS (opcional si el cupón no viene de un gimnasio) */
+  @IsInt()
+  @IsOptional()
+  gymId?: number;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  gymName?: string;
 }

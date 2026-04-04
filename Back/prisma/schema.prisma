@@ -172,9 +172,14 @@ model DiscountCode {
   
   minOrderAmount  Int?      @map("min_order_amount") // Monto mínimo de pedido (opcional)
 
+  // Origen SaaS (gimnasio que emitió el cupón; snapshot de gym_id / name del otro sistema)
+  gymId           Int?      @map("gym_id")
+  gymName         String?   @map("gym_name") @db.VarChar(100)
+
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
+  @@index([gymId])
   @@map("discount_codes")
 }
 

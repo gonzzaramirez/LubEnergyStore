@@ -97,6 +97,9 @@ export function ProductCard({ product }: ProductCardProps) {
         aria-label={`Ver detalles de ${product.name}`}
         prefetch
         className="absolute inset-0 z-10"
+        onClick={() => {
+          sessionStorage.setItem("productos-scroll", String(window.scrollY));
+        }}
       />
 
       {/* Badges — informacionales, sin interacción */}

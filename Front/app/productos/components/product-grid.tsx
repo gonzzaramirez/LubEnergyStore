@@ -111,6 +111,18 @@ export function ProductGrid({
     fetchData();
   }, [featuredOnly]);
 
+  // Restaurar posición de scroll al volver desde un producto
+  useEffect(() => {
+    if (isLoading || products.length === 0 || featuredOnly) return;
+    const saved = sessionStorage.getItem("productos-scroll");
+    if (!saved) return;
+    const y = parseInt(saved, 10);
+    sessionStorage.removeItem("productos-scroll");
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, behavior: "instant" });
+    });
+  }, [isLoading, products.length, featuredOnly]);
+
   const filteredProducts = useMemo(() => {
     let result = products;
 

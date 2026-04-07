@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { formatPrice, type Product, type Category } from "@/lib/products";
 import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
@@ -22,7 +20,6 @@ interface DisplayProduct {
   image: string;
   badge?: string;
   flavorsCount?: number;
-  // Campos de descuento
   discountPercent?: number;
   discountStartDate?: string;
   discountEndDate?: string;
@@ -35,53 +32,30 @@ interface ProductCardProps {
   product: DisplayProduct;
 }
 
-// Verificar si el descuento está activo
 function isDiscountActive(product: DisplayProduct): boolean {
   if (!product.discountPercent || product.discountPercent <= 0) return false;
-
   const now = new Date();
-
-  if (product.discountStartDate && new Date(product.discountStartDate) > now) {
-    return false;
-  }
-
-  if (product.discountEndDate && new Date(product.discountEndDate) < now) {
-    return false;
-  }
-
+  if (product.discountStartDate && new Date(product.discountStartDate) > now) return false;
+  if (product.discountEndDate && new Date(product.discountEndDate) < now) return false;
   return true;
 }
 
-// Calcular precio con descuento
 function getDiscountedPrice(product: DisplayProduct): number {
   if (!isDiscountActive(product)) return product.price;
   return Math.round(product.price * (1 - (product.discountPercent || 0) / 100));
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const router = useRouter();
   const { addItem } = useCart();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasActiveDiscount = isDiscountActive(product);
   const finalPrice = getDiscountedPrice(product);
-
-  useEffect(() => {
-    return () => {
-      if (navigationTimerRef.current) {
-        clearTimeout(navigationTimerRef.current);
-      }
-    };
-  }, []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.isOutOfStock) return;
 
-    // Convertir categoría string a tipo Category del carrito
     const categoryName = product.category.toLowerCase().replace(/\s+/g, "-");
     const category: Category | "otros" =
       categoryName === "proteínas" || categoryName === "proteinas"
@@ -96,13 +70,12 @@ export function ProductCard({ product }: ProductCardProps) {
         ? "vitaminas"
         : ("otros" as Category);
 
-    // Adaptar producto al formato del carrito (con precio con descuento aplicado)
     const cartProduct: Product = {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: finalPrice, // Usar precio con descuento
-      category: category,
+      price: finalPrice,
+      category,
       image: product.image,
       badge: product.badge,
     };
@@ -111,40 +84,23 @@ export function ProductCard({ product }: ProductCardProps) {
     toast.success(`${product.name} agregado al carrito`);
   };
 
-  const handleCardNavigation = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (isNavigating) return;
-
-    setIsNavigating(true);
-
-    // Breve transición para dar feedback táctil antes de navegar.
-    navigationTimerRef.current = setTimeout(() => {
-      router.push(`/productos/${product.slug}`);
-    }, 140);
-  };
-
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.99]",
-        "motion-reduce:transition-none",
-        isNavigating && "scale-[0.985] opacity-90"
-      )}
-    >
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.98] touch-manipulation">
+
+      {/*
+        Overlay link cubre toda la card a z-10.
+        El contenido no interactivo es pointer-events-none, así cada toque
+        cae directamente aquí sin pasar por estado hover intermedio.
+      */}
       <Link
         href={`/productos/${product.slug}`}
-        onClick={handleCardNavigation}
         aria-label={`Ver detalles de ${product.name}`}
-        className={cn(
-          "absolute inset-0 z-10 transition-colors duration-150 active:bg-primary/5",
-          "motion-reduce:transition-none"
-        )}
+        prefetch
+        className="absolute inset-0 z-10"
       />
 
-      {/* Badges Container */}
-      <div className="absolute left-2 top-2 z-20 flex flex-col gap-1 sm:left-3 sm:top-3">
+      {/* Badges — informacionales, sin interacción */}
+      <div className="pointer-events-none absolute left-2 top-2 z-20 flex flex-col gap-1 sm:left-3 sm:top-3">
         {product.isOutOfStock && (
           <Badge
             variant="secondary"
@@ -153,31 +109,27 @@ export function ProductCard({ product }: ProductCardProps) {
             Sin stock
           </Badge>
         )}
-        {/* Badge de descuento */}
         {hasActiveDiscount && (
-          <Badge className="bg-red-500 hover:bg-red-500 text-[10px] sm:text-xs font-semibold">
+          <Badge className="bg-red-500 text-[10px] font-semibold hover:bg-red-500 sm:text-xs">
             {product.discountPercent}% OFF
           </Badge>
         )}
-        {/* Badge original */}
         {product.badge && !hasActiveDiscount && (
-          <Badge className="bg-primary hover:bg-primary text-[10px] sm:text-xs font-semibold">
+          <Badge className="bg-primary text-[10px] font-semibold hover:bg-primary sm:text-xs">
             {product.badge}
           </Badge>
         )}
-        {/* Badge de descuento por cantidad */}
         {product.minQuantityDiscount && product.quantityDiscountPercent && (
           <Badge
             variant="outline"
-            className="text-[9px] sm:text-[10px] bg-background/80 backdrop-blur-sm"
+            className="bg-background/80 text-[9px] backdrop-blur-sm sm:text-[10px]"
           >
-            {product.minQuantityDiscount}+ = {product.quantityDiscountPercent}%
-            OFF
+            {product.minQuantityDiscount}+ = {product.quantityDiscountPercent}% OFF
           </Badge>
         )}
       </div>
 
-      {/* Image Container */}
+      {/* Imagen */}
       <div className="relative aspect-square overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 p-4 sm:p-6">
           <Image
@@ -187,37 +139,44 @@ export function ProductCard({ product }: ProductCardProps) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className={cn(
               "object-contain transition-transform duration-300 group-hover:scale-110",
-              product.isOutOfStock && "grayscale opacity-60"
+              product.isOutOfStock && "opacity-60 grayscale"
             )}
           />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-20 flex flex-1 flex-col p-3 sm:p-4 pointer-events-none">
-        <h3 className="mb-1 text-sm font-semibold text-foreground line-clamp-1 sm:text-base">
+      {/*
+        Contenido — pointer-events-none en el contenedor para que taps en texto/precio
+        caigan al overlay link (z-10). Los botones recuperan pointer-events con
+        pointer-events-auto en su propio contenedor (z-20).
+      */}
+      <div className="pointer-events-none relative z-20 flex flex-1 flex-col p-3 sm:p-4">
+        <h3 className="mb-1 line-clamp-1 text-sm font-semibold text-foreground sm:text-base">
           {product.name}
         </h3>
+
         {product.flavorsCount && product.flavorsCount > 0 ? (
           <div className="mb-2 flex items-center gap-1.5">
             <div className="flex -space-x-1.5 overflow-hidden">
               {[...Array(Math.min(product.flavorsCount, 3))].map((_, i) => (
-                <div 
-                  key={i} 
-                  className="h-2 w-2 rounded-full border border-background bg-primary/40" 
+                <div
+                  key={i}
+                  className="h-2 w-2 rounded-full border border-background bg-primary/40"
                 />
               ))}
             </div>
             <span className="text-[10px] font-medium text-muted-foreground sm:text-xs">
-              {product.flavorsCount} {product.flavorsCount === 1 ? 'sabor disponible' : 'sabores disponibles'}
+              {product.flavorsCount}{" "}
+              {product.flavorsCount === 1 ? "sabor disponible" : "sabores disponibles"}
             </span>
           </div>
         ) : null}
-        <p className="mb-3 flex-1 text-xs text-muted-foreground line-clamp-2 sm:mb-4 sm:text-sm">
+
+        <p className="mb-3 flex-1 line-clamp-2 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
           {product.description}
         </p>
 
-        {/* Precios */}
+        {/* Precio */}
         <div className="flex items-center gap-2">
           {hasActiveDiscount ? (
             <>
@@ -235,13 +194,13 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-3 space-y-2 sm:mt-4 pointer-events-auto">
+        {/* Botones — z-20, pointer-events-auto para capturar taps propios */}
+        <div className="pointer-events-auto mt-3 space-y-2 sm:mt-4">
           <Button
             onClick={handleAddToCart}
             size="sm"
             disabled={product.isOutOfStock}
-            className="w-full text-xs sm:text-sm cursor-pointer disabled:cursor-not-allowed"
+            className="w-full cursor-pointer text-xs disabled:cursor-not-allowed sm:text-sm"
             aria-label={
               product.isOutOfStock
                 ? `${product.name} sin stock`
@@ -257,20 +216,18 @@ export function ProductCard({ product }: ProductCardProps) {
               </>
             )}
           </Button>
+
+          {/* Ver detalles: oculto en mobile (toda la card ya navega), visible en desktop al hacer hover */}
           <Link
             href={`/productos/${product.slug}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCardNavigation(e);
-            }}
-            className={`group/link block transition-opacity duration-200 ${
-              isHovered ? "opacity-100" : "opacity-0"
-            }`}
+            tabIndex={-1}
+            aria-hidden
+            className="hidden opacity-0 transition-opacity duration-200 group-hover:opacity-100 sm:block"
           >
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-full border-border text-xs  sm:text-sm cursor-pointer"
+              className="h-9 w-full cursor-pointer border-border text-xs sm:text-sm"
             >
               <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
               Ver detalles

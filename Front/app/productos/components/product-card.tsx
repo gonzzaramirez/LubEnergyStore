@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { formatPrice, type Product, type Category } from "@/lib/products";
 import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
@@ -59,7 +58,6 @@ function getDiscountedPrice(product: DisplayProduct): number {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const router = useRouter();
   const { addItem } = useCart();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -101,19 +99,20 @@ export function ProductCard({ product }: ProductCardProps) {
     toast.success(`${product.name} agregado al carrito`);
   };
 
-  const handleCardClick = () => {
-    router.push(`/productos/${product.slug}`);
-  };
-
   return (
     <div
-      onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg"
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg"
     >
+      <Link
+        href={`/productos/${product.slug}`}
+        aria-label={`Ver detalles de ${product.name}`}
+        className="absolute inset-0 z-10"
+      />
+
       {/* Badges Container */}
-      <div className="absolute left-2 top-2 z-10 flex flex-col gap-1 sm:left-3 sm:top-3">
+      <div className="absolute left-2 top-2 z-20 flex flex-col gap-1 sm:left-3 sm:top-3">
         {product.isOutOfStock && (
           <Badge
             variant="secondary"
@@ -163,7 +162,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
+      <div className="relative z-20 flex flex-1 flex-col p-3 sm:p-4">
         <h3 className="mb-1 text-sm font-semibold text-foreground line-clamp-1 sm:text-base">
           {product.name}
         </h3>

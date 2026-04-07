@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { formatPrice, type Product, type Category } from "@/lib/products";
 import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
@@ -58,11 +59,22 @@ function getDiscountedPrice(product: DisplayProduct): number {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const { addItem } = useCart();
   const [isHovered, setIsHovered] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasActiveDiscount = isDiscountActive(product);
   const finalPrice = getDiscountedPrice(product);
+
+  useEffect(() => {
+    return () => {
+      if (navigationTimerRef.current) {
+        clearTimeout(navigationTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -99,16 +111,36 @@ export function ProductCard({ product }: ProductCardProps) {
     toast.success(`${product.name} agregado al carrito`);
   };
 
+  const handleCardNavigation = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (isNavigating) return;
+
+    setIsNavigating(true);
+
+    // Breve transición para dar feedback táctil antes de navegar.
+    navigationTimerRef.current = setTimeout(() => {
+      router.push(`/productos/${product.slug}`);
+    }, 140);
+  };
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.99]"
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.99]",
+        "motion-reduce:transition-none",
+        isNavigating && "scale-[0.985] opacity-90"
+      )}
     >
       <Link
         href={`/productos/${product.slug}`}
+        onClick={handleCardNavigation}
         aria-label={`Ver detalles de ${product.name}`}
-        className="absolute inset-0 z-10 transition-colors duration-150 active:bg-primary/5"
+        className={cn(
+          "absolute inset-0 z-10 transition-colors duration-150 active:bg-primary/5",
+          "motion-reduce:transition-none"
+        )}
       />
 
       {/* Badges Container */}
@@ -227,7 +259,10 @@ export function ProductCard({ product }: ProductCardProps) {
           </Button>
           <Link
             href={`/productos/${product.slug}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCardNavigation(e);
+            }}
             className={`group/link block transition-opacity duration-200 ${
               isHovered ? "opacity-100" : "opacity-0"
             }`}

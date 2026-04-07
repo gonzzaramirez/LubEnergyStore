@@ -103,12 +103,12 @@ export function ProductCard({ product }: ProductCardProps) {
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg"
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg active:scale-[0.99]"
     >
       <Link
         href={`/productos/${product.slug}`}
         aria-label={`Ver detalles de ${product.name}`}
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-10 transition-colors duration-150 active:bg-primary/5"
       />
 
       {/* Badges Container */}
@@ -162,7 +162,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-20 flex flex-1 flex-col p-3 sm:p-4">
+      <div className="relative z-20 flex flex-1 flex-col p-3 sm:p-4 pointer-events-none">
         <h3 className="mb-1 text-sm font-semibold text-foreground line-clamp-1 sm:text-base">
           {product.name}
         </h3>
@@ -204,7 +204,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-3 space-y-2 sm:mt-4">
+        <div className="mt-3 space-y-2 sm:mt-4 pointer-events-auto">
           <Button
             onClick={handleAddToCart}
             size="sm"

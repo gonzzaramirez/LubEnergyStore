@@ -22,11 +22,22 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lubenergy.com.ar";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "LUB ENERGY | Suplementos Deportivos",
+    default: "LUB ENERGY | Suplementos Deportivos en Corrientes",
     template: "%s | LUB ENERGY",
   },
   description:
-    "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos, aminoácidos y vitaminas. Envíos a todo el país. Las mejores marcas al mejor precio.",
+    "Tienda de suplementos deportivos en Corrientes capital, Argentina. Local físico en Junín 2183. Proteínas, creatinas, pre-entrenos, aminoácidos y vitaminas. Envíos a todo el país.",
+  keywords: [
+    "suplementos deportivos corrientes",
+    "tienda suplementos corrientes",
+    "proteína whey corrientes",
+    "creatina corrientes",
+    "pre entreno corrientes",
+    "suplementos gym corrientes capital",
+    "nutrición deportiva corrientes",
+    "donde comprar suplementos corrientes",
+    "LUB ENERGY corrientes",
+  ],
   authors: [{ name: "LUB ENERGY" }],
   creator: "LUB ENERGY",
   publisher: "LUB ENERGY",
@@ -61,23 +72,23 @@ export const metadata: Metadata = {
     locale: "es_AR",
     url: BASE_URL,
     siteName: "LUB ENERGY",
-    title: "LUB ENERGY | Suplementos Deportivos en Argentina",
+    title: "LUB ENERGY | Suplementos Deportivos en Corrientes Capital",
     description:
-      "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos y más. Envíos a todo el país.",
+      "Tienda de suplementos deportivos en Corrientes capital. Local físico en Junín 2183. Proteínas, creatinas, pre-entrenos y más. Envíos a toda Argentina.",
     images: [
       {
         url: "/lub-energy-ng.png",
         width: 1200,
         height: 630,
-        alt: "LUB ENERGY - Suplementos Deportivos",
+        alt: "LUB ENERGY - Suplementos Deportivos en Corrientes",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LUB ENERGY | Suplementos Deportivos en Argentina",
+    title: "LUB ENERGY | Suplementos Deportivos en Corrientes",
     description:
-      "Tienda online de suplementos deportivos en Argentina. Proteínas, creatinas, pre-entrenos y más.",
+      "Tienda de suplementos deportivos en Corrientes capital. Local físico en Junín 2183. Proteínas, creatinas, pre-entrenos y más.",
     images: ["/LUB ENERGY_NG_.png"],
   },
   robots: {
@@ -104,7 +115,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-// JSON-LD Schema para LocalBusiness + WebSite
+// JSON-LD Schema para LocalBusiness + WebSite + FAQ
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -113,7 +124,8 @@ const jsonLd = {
       "@id": `${BASE_URL}/#website`,
       url: BASE_URL,
       name: "LUB ENERGY",
-      description: "Tienda online de suplementos deportivos en Argentina",
+      description:
+        "Tienda de suplementos deportivos en Corrientes capital, Argentina. Local físico en Junín 2183.",
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -129,22 +141,22 @@ const jsonLd = {
       "@id": `${BASE_URL}/#localbusiness`,
       name: "LUB ENERGY",
       description:
-        "Tienda de suplementos deportivos. Proteínas, creatinas, pre-entrenos y más.",
+        "LUB ENERGY es una tienda de suplementos deportivos ubicada en Junín 2183, Corrientes capital, Argentina. Vende proteínas, creatinas, pre-entrenos, aminoácidos y vitaminas de las mejores marcas. Realiza envíos a todo el país.",
       url: BASE_URL,
       telephone: "+54 379 505-6878",
       email: "Lubenergy1324@gmail.com",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Vicente Mendieta 453",
-        addressLocality: "Monte Caseros",
+        streetAddress: "Junín 2183",
+        addressLocality: "Corrientes",
         addressRegion: "Corrientes",
-        postalCode: "W3220",
+        postalCode: "W3400",
         addressCountry: "AR",
       },
       geo: {
         "@type": "GeoCoordinates",
-        latitude: -30.248566,
-        longitude: -57.630734,
+        latitude: -27.474,
+        longitude: -58.832,
       },
       openingHoursSpecification: {
         "@type": "OpeningHoursSpecification",
@@ -162,13 +174,25 @@ const jsonLd = {
       sameAs: [
         "https://www.instagram.com/lub_energy/",
         "https://wa.me/543795056878",
+        "https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
       ],
       priceRange: "$$",
       image: `${BASE_URL}/lub-energy-ng.png`,
-      areaServed: {
-        "@type": "Country",
-        name: "Argentina",
-      },
+      areaServed: [
+        {
+          "@type": "City",
+          name: "Corrientes",
+        },
+        {
+          "@type": "State",
+          name: "Corrientes",
+        },
+        {
+          "@type": "Country",
+          name: "Argentina",
+        },
+      ],
+      hasMap: "https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
     },
     {
       "@type": "Organization",
@@ -186,7 +210,64 @@ const jsonLd = {
         areaServed: "AR",
         availableLanguage: "Spanish",
       },
-      sameAs: ["https://www.instagram.com/lub_energy/"],
+      sameAs: [
+        "https://www.instagram.com/lub_energy/",
+        "https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${BASE_URL}/#faq`,
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "¿Dónde está ubicado LUB ENERGY?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "LUB ENERGY está ubicado en Junín 2183, Corrientes capital, provincia de Corrientes, Argentina. Podés encontrarnos en Google Maps: https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Venden suplementos deportivos en Corrientes?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí. LUB ENERGY es la tienda de suplementos deportivos con local físico propio en Corrientes capital. Vendemos proteínas, creatinas, pre-entrenos, aminoácidos, vitaminas y mucho más de las mejores marcas.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Hacen envíos a toda Argentina?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí, LUB ENERGY realiza envíos a todo el país. Podés comprar desde cualquier provincia y recibir tu pedido en la puerta de tu casa.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Cuáles son los horarios de atención del local?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "El local de LUB ENERGY atiende de lunes a sábado de 9:00 a 21:00 hs. También podés contactarnos por WhatsApp al +54 379 505-6878 o escribirnos por Instagram @lub_energy.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Qué suplementos vende LUB ENERGY en Corrientes?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "LUB ENERGY vende proteínas whey, creatina monohidrato, pre-entrenos, aminoácidos BCAA, quemadores de grasa, vitaminas y suplementos para rendimiento deportivo. Todos los productos son originales de marcas reconocidas.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Cómo puedo contactar a LUB ENERGY?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Podés contactar a LUB ENERGY por WhatsApp al +54 379 505-6878, por email a Lubenergy1324@gmail.com, o visitarnos en nuestro local en Junín 2183, Corrientes capital.",
+          },
+        },
+      ],
     },
   ],
 };
@@ -233,8 +314,10 @@ export default function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="geo.region" content="AR" />
-        <meta name="geo.placename" content="Monte Caseros, Corrientes" />
+        <meta name="geo.region" content="AR-W" />
+        <meta name="geo.placename" content="Corrientes, Corrientes" />
+        <meta name="geo.position" content="-27.474;-58.832" />
+        <meta name="ICBM" content="-27.474, -58.832" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}

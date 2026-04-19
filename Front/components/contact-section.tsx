@@ -26,8 +26,8 @@ export function ContactSection() {
     {
       icon: <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />,
       label: "Dirección",
-      value: "Vicente Mendieta 453, Monte Caseros, Corrientes",
-      href: "https://maps.app.goo.gl/kX8yQ1Y5Z7D2",
+      value: "Junín 2183, Corrientes capital",
+      href: "https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
     },
   ];
 
@@ -99,7 +99,7 @@ export function ContactSection() {
             className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg aspect-square lg:aspect-auto"
           >
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3446.5970203901875!2d-57.630734725131845!3d-30.24856624077106!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95acd63c3f1cc57b%3A0x432d01f648c3ae0b!2sVicente%20Mendieta%20453%2C%20W3232%20Monte%20Caseros%2C%20Corrientes!5e0!3m2!1ses!2sar!4v1767891632097!5m2!1ses!2sar"
+              src="https://maps.google.com/maps?q=Junín+2183,+Corrientes,+Argentina&t=&z=17&ie=UTF8&iwloc=&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: "350px" }}
@@ -107,7 +107,7 @@ export function ContactSection() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="grayscale contrast-125 transition-all hover:grayscale-0 h-full"
-              title="Ubicación de LUB ENERGY en Google Maps"
+              title="Ubicación de LUB ENERGY en Junín 2183, Corrientes"
             />
           </motion.div>
 

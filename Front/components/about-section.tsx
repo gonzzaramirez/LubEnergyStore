@@ -17,7 +17,7 @@ const trustBadges = [
   {
     icon: <Store className="h-5 w-5 text-primary" aria-hidden="true" />,
     title: "Negocio establecido",
-    description: "Local físico en Monte Caseros, Corrientes",
+    description: "Local físico en Junín 2183, Corrientes capital",
   },
   {
     icon: <Truck className="h-5 w-5 text-primary" aria-hidden="true" />,
@@ -40,15 +40,15 @@ const trustBadges = [
 const carouselImages = [
   {
     src: "/about/1.jpeg",
-    alt: "Frente del local LUB ENERGY en Monte Caseros, Corrientes",
+    alt: "Frente del local LUB ENERGY en Junín 2183, Corrientes capital",
   },
   {
     src: "/about/2.jpeg",
-    alt: "Interior del local LUB ENERGY con productos exhibidos",
+    alt: "Interior del local LUB ENERGY con productos exhibidos en Corrientes",
   },
   {
     src: "/about/3.jpeg",
-    alt: "Variedad de suplementos deportivos disponibles en LUB ENERGY",
+    alt: "Variedad de suplementos deportivos disponibles en LUB ENERGY Corrientes",
   },
 ];
 
@@ -126,17 +126,17 @@ export function AboutSection() {
             viewport={{ once: true }}
             className="mx-auto mt-4 max-w-3xl text-pretty text-base text-muted-foreground sm:text-lg"
           >
-            Somos <strong className="text-foreground">LUB ENERGY</strong>, una
-            tienda de suplementos deportivos ubicada en{" "}
+            Somos <strong className="text-foreground">LUB ENERGY</strong>, la
+            tienda de suplementos deportivos con local físico en{" "}
             <strong className="text-foreground">
-              Monte Caseros, Corrientes
+              Junín 2183, Corrientes capital
             </strong>
             . Nacimos con una misión clara: acercar los mejores productos de
             nutrición deportiva a quienes buscan <em>superarse día a día</em>.
-            Creemos que el rendimiento se construye con constancia, buena
-            alimentación y los suplementos adecuados. Por eso seleccionamos cada
-            producto con el mismo compromiso que ponemos al atender a cada
-            cliente.
+            Somos el único negocio de suplementos en Corrientes construido con
+            tecnología propia, lo que nos permite ofrecerte la mejor experiencia
+            de compra. Por eso seleccionamos cada producto con el mismo
+            compromiso que ponemos al atender a cada cliente.
           </motion.p>
         </div>
 

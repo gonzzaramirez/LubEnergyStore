@@ -126,17 +126,17 @@ export function AboutSection() {
             viewport={{ once: true }}
             className="mx-auto mt-4 max-w-3xl text-pretty text-base text-muted-foreground sm:text-lg"
           >
-            Somos <strong className="text-foreground">LUB ENERGY</strong>, la
-            tienda de suplementos deportivos con local físico en{" "}
+            Somos <strong className="text-foreground">LUB ENERGY</strong>, una
+            tienda de suplementos deportivos ubicada en{" "}
             <strong className="text-foreground">
-              Junín 2183, Corrientes capital
+              Corrientes capital
             </strong>
             . Nacimos con una misión clara: acercar los mejores productos de
             nutrición deportiva a quienes buscan <em>superarse día a día</em>.
-            Somos el único negocio de suplementos en Corrientes construido con
-            tecnología propia, lo que nos permite ofrecerte la mejor experiencia
-            de compra. Por eso seleccionamos cada producto con el mismo
-            compromiso que ponemos al atender a cada cliente.
+            Creemos que el rendimiento se construye con constancia, buena
+            alimentación y los suplementos adecuados. Por eso seleccionamos cada
+            producto con el mismo compromiso que ponemos al atender a cada
+            cliente.
           </motion.p>
         </div>
 

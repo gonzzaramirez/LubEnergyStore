@@ -8,6 +8,78 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async syncFromSheets(
+    data: { sku: string; price?: number | null; stock?: number | null }[],
+  ) {
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        message: 'No se recibieron filas para sincronizar',
+        skusRecibidos: 0,
+        filasProductoActualizadas: 0,
+        filasSaborActualizadas: 0,
+        skusSinCoincidencia: [] as string[],
+      };
+    }
+
+    let filasProductoActualizadas = 0;
+    let filasSaborActualizadas = 0;
+    const skusSinCoincidencia: string[] = [];
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const raw of data) {
+        const sku = String(raw.sku ?? '').trim();
+        if (!sku) continue;
+
+        const hasPrice = raw.price !== undefined && raw.price !== null;
+        const price = hasPrice ? Math.round(Number(raw.price)) : NaN;
+        const usePrice = hasPrice && Number.isFinite(price);
+
+        const hasStock = raw.stock !== undefined && raw.stock !== null;
+        const stock = hasStock ? Math.round(Number(raw.stock)) : NaN;
+        const useStock = hasStock && Number.isFinite(stock);
+
+        if (!usePrice && !useStock) continue;
+
+        const productData: { price?: number; stockQuantity?: number } = {};
+        if (usePrice) productData.price = price;
+        if (useStock) productData.stockQuantity = stock;
+
+        const productRes =
+          Object.keys(productData).length > 0
+            ? await tx.product.updateMany({
+                where: { sku },
+                data: productData,
+              })
+            : { count: 0 };
+
+        const flavorRes = useStock
+          ? await tx.productFlavor.updateMany({
+              where: { sku },
+              data: { stockQuantity: stock },
+            })
+          : { count: 0 };
+
+        filasProductoActualizadas += productRes.count;
+        filasSaborActualizadas += flavorRes.count;
+
+        if (productRes.count === 0 && flavorRes.count === 0) {
+          skusSinCoincidencia.push(sku);
+        }
+      }
+    });
+
+    return {
+      message:
+        skusSinCoincidencia.length === 0
+          ? `Sincronización aplicada: ${filasProductoActualizadas} fila(s) en productos, ${filasSaborActualizadas} en sabores.`
+          : `Procesados ${data.length} ítems del payload: ${filasProductoActualizadas} producto(s) y ${filasSaborActualizadas} sabor(es) actualizados. Algunos SKUs no existen en la base (revisá mayúsculas/espacios o si el precio va en el padre y el stock en el sabor).`,
+      skusRecibidos: data.length,
+      filasProductoActualizadas,
+      filasSaborActualizadas,
+      skusSinCoincidencia,
+    };
+  }
+
   create(createProductDto: CreateProductDto) {
     // Preparar datos, convirtiendo fechas al formato ISO-8601 completo
     const { flavors, ...rest } = createProductDto;
@@ -40,11 +112,11 @@ export class ProductsService {
 
     return this.prisma.product.findMany({
       where,
-      include: { 
+      include: {
         category: true,
         flavors: {
-          where: { isActive: true }
-        }
+          where: { isActive: true },
+        },
       },
     });
   }
@@ -52,9 +124,9 @@ export class ProductsService {
   findAllDeleted() {
     return this.prisma.product.findMany({
       where: { deletedAt: { not: null } },
-      include: { 
+      include: {
         category: true,
-        flavors: true
+        flavors: true,
       },
     });
   }
@@ -62,9 +134,9 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id, deletedAt: null },
-      include: { 
+      include: {
         category: true,
-        flavors: true
+        flavors: true,
       },
     });
 
@@ -78,11 +150,11 @@ export class ProductsService {
   async findOneBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
       where: { slug, deletedAt: null },
-      include: { 
+      include: {
         category: true,
         flavors: {
-          where: { isActive: true }
-        }
+          where: { isActive: true },
+        },
       },
     });
 
@@ -97,7 +169,10 @@ export class ProductsService {
     const existingProduct = await this.findOne(id);
 
     // Si el precio cambió, registrar en historial
-    if (updateProductDto.price !== undefined && updateProductDto.price !== existingProduct.price) {
+    if (
+      updateProductDto.price !== undefined &&
+      updateProductDto.price !== existingProduct.price
+    ) {
       const oldPrice = existingProduct.price;
       const newPrice = updateProductDto.price;
       const changePercent = ((newPrice - oldPrice) / oldPrice) * 100;
@@ -188,12 +263,16 @@ export class ProductsService {
     const products = await this.prisma.product.findMany({ where });
 
     if (products.length === 0) {
-      return { updated: 0, message: 'No se encontraron productos para actualizar' };
+      return {
+        updated: 0,
+        message: 'No se encontraron productos para actualizar',
+      };
     }
 
     // Calcular el motivo del cambio
-    const changeReason = reason || 
-      (categoryId 
+    const changeReason =
+      reason ||
+      (categoryId
         ? `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (categoría)`
         : `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (todos)`);
 

@@ -30,7 +30,9 @@ export class AuthService {
 
     // Verificar que tenga password (no sea usuario de Google)
     if (!user.passwordHash) {
-      throw new UnauthorizedException('Este usuario no tiene contraseña configurada');
+      throw new UnauthorizedException(
+        'Este usuario no tiene contraseña configurada',
+      );
     }
 
     // Verificar password

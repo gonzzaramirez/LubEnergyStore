@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Res, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Res,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -21,26 +30,42 @@ export class AuthController {
     // Determinar si estamos en producción con HTTPS
     const isProduction = process.env.NODE_ENV === 'production';
     // En producción detrás de proxy, asumimos HTTPS
-    const isSecure = isProduction || request.protocol === 'https' || request.get('x-forwarded-proto') === 'https';
-    
+    const isSecure =
+      isProduction ||
+      request.protocol === 'https' ||
+      request.get('x-forwarded-proto') === 'https';
+
     // Detectar si frontend y backend están en dominios/subdominios diferentes
     const frontendUrl = process.env.FRONTEND_URL || '';
     const currentHost = request.get('host')?.split(':')[0] || '';
-    const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
-    
+    const frontendHost = frontendUrl
+      .replace(/https?:\/\//, '')
+      .split(':')[0]
+      .split('/')[0];
+
     // Verificar si son subdominios del mismo dominio base
     // Ejemplo: x0p.lubenergy.com.ar y lubenergy.com.ar comparten el dominio base
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
-    
+
     // Lista de TLDs de segundo nivel (como .com.ar, .gov.ar, .org.ar, .co.uk, etc.)
-    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
-    
+    const secondLevelTLDs = [
+      'com.ar',
+      'gov.ar',
+      'org.ar',
+      'net.ar',
+      'mil.ar',
+      'int.ar',
+      'co.uk',
+      'org.uk',
+      'com.br',
+    ];
+
     // Función para obtener el dominio base correctamente
     const getBaseDomain = (host: string): string => {
       const parts = host.split('.');
       if (parts.length < 2) return host;
-      
+
       // Verificar si termina en un TLD de segundo nivel
       const lastTwo = parts.slice(-2).join('.');
       if (secondLevelTLDs.includes(lastTwo) && parts.length >= 3) {
@@ -50,11 +75,16 @@ export class AuthController {
       // Para TLDs normales, las últimas 2 partes (ej: example.com)
       return parts.slice(-2).join('.');
     };
-    
-    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+
+    if (
+      isProduction &&
+      currentHost &&
+      frontendHost &&
+      currentHost !== frontendHost
+    ) {
       const currentBase = getBaseDomain(currentHost);
       const frontendBase = getBaseDomain(frontendHost);
-      
+
       // Si comparten el dominio base, son same-site (usar 'lax' con dominio compartido)
       if (currentBase === frontendBase) {
         domain = `.${currentBase}`;
@@ -64,7 +94,7 @@ export class AuthController {
         sameSiteValue = 'none';
       }
     }
-    
+
     const cookieOptions: any = {
       httpOnly: true,
       secure: isSecure,
@@ -86,7 +116,7 @@ export class AuthController {
       ...cookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
     });
-    
+
     // Log adicional para debug (siempre visible en producción para monitoreo)
     console.log('🍪 Cookies configuradas:', {
       domain: cookieOptions.domain || 'no domain (default)',
@@ -124,14 +154,30 @@ export class AuthController {
 
     // Usar la misma lógica de cookies que en login
     const isProduction = process.env.NODE_ENV === 'production';
-    const isSecure = isProduction || request.protocol === 'https' || request.get('x-forwarded-proto') === 'https';
+    const isSecure =
+      isProduction ||
+      request.protocol === 'https' ||
+      request.get('x-forwarded-proto') === 'https';
     const frontendUrl = process.env.FRONTEND_URL || '';
     const currentHost = request.get('host')?.split(':')[0] || '';
-    const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
-    
+    const frontendHost = frontendUrl
+      .replace(/https?:\/\//, '')
+      .split(':')[0]
+      .split('/')[0];
+
     // Lista de TLDs de segundo nivel (como .com.ar, .gov.ar, etc.)
-    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
-    
+    const secondLevelTLDs = [
+      'com.ar',
+      'gov.ar',
+      'org.ar',
+      'net.ar',
+      'mil.ar',
+      'int.ar',
+      'co.uk',
+      'org.uk',
+      'com.br',
+    ];
+
     const getBaseDomain = (host: string): string => {
       const parts = host.split('.');
       if (parts.length < 2) return host;
@@ -141,14 +187,19 @@ export class AuthController {
       }
       return parts.slice(-2).join('.');
     };
-    
+
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
-    
-    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+
+    if (
+      isProduction &&
+      currentHost &&
+      frontendHost &&
+      currentHost !== frontendHost
+    ) {
       const currentBase = getBaseDomain(currentHost);
       const frontendBase = getBaseDomain(frontendHost);
-      
+
       if (currentBase === frontendBase) {
         domain = `.${currentBase}`;
         sameSiteValue = 'lax';
@@ -156,7 +207,7 @@ export class AuthController {
         sameSiteValue = 'none';
       }
     }
-    
+
     const cookieOptions: any = {
       httpOnly: true,
       secure: isSecure,
@@ -164,7 +215,7 @@ export class AuthController {
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 semana
     };
-    
+
     if (domain) {
       cookieOptions.domain = domain;
     }
@@ -183,14 +234,30 @@ export class AuthController {
   ) {
     // Limpiar cookies con las mismas opciones que se usaron para crearlas
     const isProduction = process.env.NODE_ENV === 'production';
-    const isSecure = isProduction || request.protocol === 'https' || request.get('x-forwarded-proto') === 'https';
+    const isSecure =
+      isProduction ||
+      request.protocol === 'https' ||
+      request.get('x-forwarded-proto') === 'https';
     const frontendUrl = process.env.FRONTEND_URL || '';
     const currentHost = request.get('host')?.split(':')[0] || '';
-    const frontendHost = frontendUrl.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
-    
+    const frontendHost = frontendUrl
+      .replace(/https?:\/\//, '')
+      .split(':')[0]
+      .split('/')[0];
+
     // Lista de TLDs de segundo nivel
-    const secondLevelTLDs = ['com.ar', 'gov.ar', 'org.ar', 'net.ar', 'mil.ar', 'int.ar', 'co.uk', 'org.uk', 'com.br'];
-    
+    const secondLevelTLDs = [
+      'com.ar',
+      'gov.ar',
+      'org.ar',
+      'net.ar',
+      'mil.ar',
+      'int.ar',
+      'co.uk',
+      'org.uk',
+      'com.br',
+    ];
+
     const getBaseDomain = (host: string): string => {
       const parts = host.split('.');
       if (parts.length < 2) return host;
@@ -200,14 +267,19 @@ export class AuthController {
       }
       return parts.slice(-2).join('.');
     };
-    
+
     let domain: string | undefined = undefined;
     let sameSiteValue: 'none' | 'lax' | 'strict' = 'lax';
-    
-    if (isProduction && currentHost && frontendHost && currentHost !== frontendHost) {
+
+    if (
+      isProduction &&
+      currentHost &&
+      frontendHost &&
+      currentHost !== frontendHost
+    ) {
       const currentBase = getBaseDomain(currentHost);
       const frontendBase = getBaseDomain(frontendHost);
-      
+
       if (currentBase === frontendBase) {
         domain = `.${currentBase}`;
         sameSiteValue = 'lax';
@@ -215,18 +287,18 @@ export class AuthController {
         sameSiteValue = 'none';
       }
     }
-    
+
     const clearOptions: any = {
       path: '/',
       httpOnly: true,
       secure: isSecure,
       sameSite: sameSiteValue,
     };
-    
+
     if (domain) {
       clearOptions.domain = domain;
     }
-    
+
     response.clearCookie('access_token', clearOptions);
     response.clearCookie('refresh_token', clearOptions);
 

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { DiscountCodesService } from './discount-codes.service';
 import { CreateDiscountCodeDto } from './dto/create-discount-code.dto';
 import { UpdateDiscountCodeDto } from './dto/update-discount-code.dto';

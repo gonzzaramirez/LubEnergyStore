@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,6 +15,9 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { CreatineTrackerModule } from './creatine-tracker/creatine-tracker.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -28,6 +32,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
         limit: 100,
       },
     ]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     EmailModule,
@@ -36,6 +41,9 @@ import { RolesGuard } from './auth/guards/roles.guard';
     OrdersModule,
     DiscountCodesModule,
     IntegrationsModule,
+    WhatsappModule,
+    CreatineTrackerModule,
+    SalesModule,
   ],
   controllers: [AppController],
   providers: [

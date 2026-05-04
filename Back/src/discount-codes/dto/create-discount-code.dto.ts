@@ -14,7 +14,9 @@ import {
 export class CreateDiscountCodeDto {
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Z0-9]+$/, { message: 'El código debe contener solo letras mayúsculas y números' })
+  @Matches(/^[A-Z0-9]+$/, {
+    message: 'El código debe contener solo letras mayúsculas y números',
+  })
   code: string; // Código único (ej: "VERANO20")
 
   @IsString()

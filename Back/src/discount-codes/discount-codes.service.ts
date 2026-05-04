@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateDiscountCodeDto } from './dto/create-discount-code.dto';
 import { CreateSaasDiscountCodeDto } from './dto/create-saas-discount-code.dto';
 import { UpdateDiscountCodeDto } from './dto/update-discount-code.dto';
@@ -60,7 +65,9 @@ export class DiscountCodesService {
         ...(dto.validFrom ? { validFrom: new Date(dto.validFrom) } : {}),
         ...(dto.validUntil ? { validUntil: new Date(dto.validUntil) } : {}),
         ...(dto.usageLimit !== undefined ? { usageLimit: dto.usageLimit } : {}),
-        ...(dto.minOrderAmount !== undefined ? { minOrderAmount: dto.minOrderAmount } : {}),
+        ...(dto.minOrderAmount !== undefined
+          ? { minOrderAmount: dto.minOrderAmount }
+          : {}),
       },
     });
 
@@ -79,7 +86,9 @@ export class DiscountCodesService {
     });
 
     if (!code) {
-      throw new NotFoundException(`Código de descuento con ID ${id} no encontrado`);
+      throw new NotFoundException(
+        `Código de descuento con ID ${id} no encontrado`,
+      );
     }
 
     return code;
@@ -101,7 +110,9 @@ export class DiscountCodesService {
       });
 
       if (existing) {
-        throw new ConflictException(`El código "${dataToUpdate.code}" ya existe`);
+        throw new ConflictException(
+          `El código "${dataToUpdate.code}" ya existe`,
+        );
       }
 
       dataToUpdate.code = dataToUpdate.code.toUpperCase();
@@ -149,7 +160,9 @@ export class DiscountCodesService {
     // Verificar fechas de validez
     const now = new Date();
     if (discountCode.validFrom && now < discountCode.validFrom) {
-      throw new BadRequestException('Este código de descuento aún no está vigente');
+      throw new BadRequestException(
+        'Este código de descuento aún no está vigente',
+      );
     }
 
     if (discountCode.validUntil && now > discountCode.validUntil) {
@@ -157,14 +170,22 @@ export class DiscountCodesService {
     }
 
     // Verificar límite de usos
-    if (discountCode.usageLimit !== null && discountCode.usageCount >= discountCode.usageLimit) {
-      throw new BadRequestException('Este código de descuento ha alcanzado su límite de usos');
+    if (
+      discountCode.usageLimit !== null &&
+      discountCode.usageCount >= discountCode.usageLimit
+    ) {
+      throw new BadRequestException(
+        'Este código de descuento ha alcanzado su límite de usos',
+      );
     }
 
     // Verificar monto mínimo
-    if (discountCode.minOrderAmount !== null && orderAmount < discountCode.minOrderAmount) {
+    if (
+      discountCode.minOrderAmount !== null &&
+      orderAmount < discountCode.minOrderAmount
+    ) {
       throw new BadRequestException(
-        `El monto mínimo para usar este código es $${discountCode.minOrderAmount}`
+        `El monto mínimo para usar este código es $${discountCode.minOrderAmount}`,
       );
     }
 

@@ -19,7 +19,9 @@ export class SaasApiKeyGuard implements CanActivate {
       );
     }
 
-    const request = context.switchToHttp().getRequest<{ headers: Record<string, string | undefined> }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ headers: Record<string, string | undefined> }>();
     const headerKey = request.headers['x-api-key'];
     const auth = request.headers['authorization'];
     let provided: string | undefined =

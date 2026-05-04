@@ -12,6 +12,9 @@ import {
   TrendingUp,
   Ticket,
   Loader2,
+  Smartphone,
+  Bell,
+  Store,
 } from "lucide-react";
 import { logout } from "@/lib/api/auth";
 import { useState } from "react";
@@ -19,11 +22,14 @@ import { useState } from "react";
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
   { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/dashboard/ventas", label: "Ventas", icon: Store },
   { href: "/dashboard/productos", label: "Productos", icon: Package },
   { href: "/dashboard/categorias", label: "Categorías", icon: Tags },
   { href: "/dashboard/precios", label: "Ajustar Precios", icon: TrendingUp },
   { href: "/dashboard/descuentos", label: "Códigos Descuento", icon: Ticket },
   { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },
+  { href: "/dashboard/seguimiento", label: "Seguimiento", icon: Bell },
+  { href: "/dashboard/whatsapp", label: "WhatsApp", icon: Smartphone },
 ];
 
 export default function Sidebar({

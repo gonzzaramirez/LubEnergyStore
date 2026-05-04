@@ -1,4 +1,15 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt, IsDateString, Min, Max, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsInt,
+  IsDateString,
+  Min,
+  Max,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class CreateProductFlavorDto {

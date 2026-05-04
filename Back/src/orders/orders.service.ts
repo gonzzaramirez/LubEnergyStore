@@ -1,15 +1,26 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Optional,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderStatusDto, UpdateTrackingDto, OrderStatusUpdate } from './dto/update-order.dto';
+import {
+  UpdateOrderStatusDto,
+  UpdateTrackingDto,
+  OrderStatusUpdate,
+} from './dto/update-order.dto';
 import { OrderStatus } from '@prisma/client';
+import { CreatineTrackerService } from '../creatine-tracker/creatine-tracker.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    @Optional() private readonly creatineTracker?: CreatineTrackerService,
   ) {}
 
   private getTrackingUrl(orderId: string): string {
@@ -76,6 +87,43 @@ export class OrdersService {
 
       return newOrder;
     });
+
+    // Auto-detectar items de creatina y crear trackers
+    try {
+      if (this.creatineTracker) {
+        const gc = order.guestCustomer;
+        const customerName = gc ? `${gc.firstName} ${gc.lastName}` : 'Cliente';
+        const customerPhone = gc?.phone ?? '';
+
+        for (const item of order.items) {
+          const hasWeight = CreatineTrackerService.extractWeightFromName(
+            item.productName,
+          );
+          if (!hasWeight) continue;
+
+          // Verificar que el producto pertenece a la categoría Creatina
+          const product = await this.prisma.product.findUnique({
+            where: { id: item.productId },
+            include: { category: true },
+          });
+
+          if (!product?.category?.name.toLowerCase().includes('creatina'))
+            continue;
+
+          await this.creatineTracker.createFromOrder({
+            orderId: order.id,
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.quantity,
+            customerName,
+            customerPhone,
+            purchaseDate: order.createdAt,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error al crear tracker de creatina:', err);
+    }
 
     try {
       const adminEmail = process.env.ADMIN_ORDER_EMAIL?.trim();
@@ -206,7 +254,10 @@ export class OrdersService {
 
     // Si se confirma el pedido, usar transacción para reducir stock
     let updatedOrder;
-    if (updateDto.status === OrderStatusUpdate.CONFIRMED && order.status === OrderStatus.PENDING) {
+    if (
+      updateDto.status === OrderStatusUpdate.CONFIRMED &&
+      order.status === OrderStatus.PENDING
+    ) {
       // Usar transacción para garantizar consistencia
       updatedOrder = await this.prisma.$transaction(async (tx) => {
         // 1. Reducir stock de cada producto
@@ -291,7 +342,10 @@ export class OrdersService {
     }
 
     // Enviar email de confirmación cuando se confirma el pago
-    if (updateDto.status === OrderStatusUpdate.CONFIRMED && updatedOrder.guestCustomer) {
+    if (
+      updateDto.status === OrderStatusUpdate.CONFIRMED &&
+      updatedOrder.guestCustomer
+    ) {
       const customer = updatedOrder.guestCustomer;
       try {
         await this.emailService.sendOrderConfirmation({
@@ -390,20 +444,27 @@ export class OrdersService {
 
   // Estadísticas para dashboard
   async getStats() {
-    const [pending, confirmed, shipped, cancelled, total] =
-      await Promise.all([
-        this.prisma.order.count({ where: { status: OrderStatus.PENDING, deletedAt: null } }),
-        this.prisma.order.count({ where: { status: OrderStatus.CONFIRMED, deletedAt: null } }),
-        this.prisma.order.count({ where: { status: OrderStatus.SHIPPED, deletedAt: null } }),
-        this.prisma.order.count({ where: { status: OrderStatus.CANCELLED, deletedAt: null } }),
-        this.prisma.order.aggregate({
-          where: { 
-            status: { in: [OrderStatus.CONFIRMED, OrderStatus.SHIPPED] },
-            deletedAt: null 
-          },
-          _sum: { totalAmount: true },
-        }),
-      ]);
+    const [pending, confirmed, shipped, cancelled, total] = await Promise.all([
+      this.prisma.order.count({
+        where: { status: OrderStatus.PENDING, deletedAt: null },
+      }),
+      this.prisma.order.count({
+        where: { status: OrderStatus.CONFIRMED, deletedAt: null },
+      }),
+      this.prisma.order.count({
+        where: { status: OrderStatus.SHIPPED, deletedAt: null },
+      }),
+      this.prisma.order.count({
+        where: { status: OrderStatus.CANCELLED, deletedAt: null },
+      }),
+      this.prisma.order.aggregate({
+        where: {
+          status: { in: [OrderStatus.CONFIRMED, OrderStatus.SHIPPED] },
+          deletedAt: null,
+        },
+        _sum: { totalAmount: true },
+      }),
+    ]);
 
     return {
       pending,

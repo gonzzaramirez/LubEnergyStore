@@ -49,15 +49,17 @@ export class EmailService {
   private resend: Resend;
   private readonly fromEmail: string;
   private readonly storeName = 'LUB ENERGY';
-  
+
   // Color primario VERDE (Ajustable a tu tono específico)
-  private readonly brandColor = '#10b981'; 
+  private readonly brandColor = '#10b981';
   private readonly darkColor = '#111111';
 
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY no configurada. Los emails no se enviarán.');
+      this.logger.warn(
+        'RESEND_API_KEY no configurada. Los emails no se enviarán.',
+      );
     }
     this.resend = new Resend(apiKey);
     this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
@@ -188,7 +190,10 @@ export class EmailService {
   }
 
   private getWhatsappWaDigits(): string {
-    return (process.env.WHATSAPP_WA_NUMBER || '543795056878').replace(/\D/g, '');
+    return (process.env.WHATSAPP_WA_NUMBER || '543795056878').replace(
+      /\D/g,
+      '',
+    );
   }
 
   private generateHeader(): string {
@@ -200,7 +205,10 @@ export class EmailService {
   }
 
   private generateFooter(whatsappNumber?: string): string {
-    const wa = (whatsappNumber || this.getWhatsappWaDigits()).replace(/\D/g, '');
+    const wa = (whatsappNumber || this.getWhatsappWaDigits()).replace(
+      /\D/g,
+      '',
+    );
     const year = formatYearInAppTimezone();
     return `
       <div class="footer">

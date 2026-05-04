@@ -1,4 +1,11 @@
-import { IsInt, IsOptional, IsNotEmpty, Min, Max, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsNotEmpty,
+  Min,
+  Max,
+  IsString,
+} from 'class-validator';
 
 export class BulkPriceUpdateDto {
   @IsInt()

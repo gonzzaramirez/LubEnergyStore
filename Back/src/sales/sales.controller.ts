@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Location, PaymentMethod } from '@prisma/client';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -11,6 +12,16 @@ export class SalesController {
   @Post()
   create(@Body() createSaleDto: CreateSaleDto) {
     return this.salesService.create(createSaleDto);
+  }
+
+  @Get('reports')
+  getReports(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('location') location?: Location,
+    @Query('paymentMethod') paymentMethod?: PaymentMethod,
+  ) {
+    return this.salesService.getReports({ startDate, endDate, location, paymentMethod });
   }
 
   @Get()

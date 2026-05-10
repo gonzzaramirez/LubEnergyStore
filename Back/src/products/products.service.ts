@@ -44,14 +44,42 @@ export class ProductsService {
         if (usePrice) productData.price = price;
         if (useStock) productData.stockQuantity = stock;
 
-        const productRes =
-          Object.keys(productData).length > 0
-            ? await tx.product.updateMany({
-                where: { sku },
-                data: productData,
-              })
-            : { count: 0 };
+        let productCount = 0;
 
+        if (Object.keys(productData).length > 0) {
+          // 1. Buscamos el producto padre para ver si existe y conocer su precio anterior
+          const existingProduct = await tx.product.findUnique({
+            where: { sku },
+          });
+
+          if (existingProduct) {
+            // 2. Si trae precio y es diferente al actual, creamos el registro de auditoría
+            if (usePrice && existingProduct.price !== price) {
+              const oldPrice = existingProduct.price;
+              const changePercent = oldPrice > 0 ? ((price - oldPrice) / oldPrice) * 100 : 0;
+
+              await tx.priceHistory.create({
+                data: {
+                  productId: existingProduct.id,
+                  oldPrice,
+                  newPrice: price,
+                  changePercent,
+                  reason: 'Sincronización Sheets', // Razón que aparecerá en el panel
+                },
+              });
+            }
+
+            // 3. Actualizamos el producto con los nuevos datos
+            await tx.product.update({
+              where: { id: existingProduct.id },
+              data: productData,
+            });
+            
+            productCount = 1;
+          }
+        }
+
+        // 4. Actualizamos el Sabor (Las variantes no manejan precio, solo stock)
         const flavorRes = useStock
           ? await tx.productFlavor.updateMany({
               where: { sku },
@@ -59,10 +87,11 @@ export class ProductsService {
             })
           : { count: 0 };
 
-        filasProductoActualizadas += productRes.count;
+        filasProductoActualizadas += productCount;
         filasSaborActualizadas += flavorRes.count;
 
-        if (productRes.count === 0 && flavorRes.count === 0) {
+        // Si no se encontró ni como producto ni como sabor
+        if (productCount === 0 && flavorRes.count === 0) {
           skusSinCoincidencia.push(sku);
         }
       }
@@ -81,7 +110,6 @@ export class ProductsService {
   }
 
   create(createProductDto: CreateProductDto) {
-    // Preparar datos, convirtiendo fechas al formato ISO-8601 completo
     const { flavors, ...rest } = createProductDto;
     const dataToCreate: any = { ...rest };
 
@@ -168,7 +196,6 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto) {
     const existingProduct = await this.findOne(id);
 
-    // Si el precio cambió, registrar en historial
     if (
       updateProductDto.price !== undefined &&
       updateProductDto.price !== existingProduct.price
@@ -188,11 +215,9 @@ export class ProductsService {
       });
     }
 
-    // Preparar datos para actualizar, convirtiendo fechas al formato ISO-8601 completo
     const { flavors, ...rest } = updateProductDto;
     const dataToUpdate: any = { ...rest };
 
-    // Convertir fechas de descuento si están presentes
     if (dataToUpdate.discountStartDate) {
       dataToUpdate.discountStartDate = new Date(dataToUpdate.discountStartDate);
     }
@@ -200,11 +225,7 @@ export class ProductsService {
       dataToUpdate.discountEndDate = new Date(dataToUpdate.discountEndDate);
     }
 
-    // Manejar sabores en la actualización
     if (flavors) {
-      // Para simplificar, eliminamos los sabores existentes y creamos los nuevos
-      // O podríamos hacer un upsert más complejo. Por ahora, sigamos la petición de "donde creo los sabores"
-      // indicando que esto se maneja en el update del producto base.
       await this.prisma.productFlavor.deleteMany({
         where: { productId: id },
       });
@@ -224,7 +245,6 @@ export class ProductsService {
   async remove(id: string) {
     await this.findOne(id);
 
-    // Soft delete
     return this.prisma.product.update({
       where: { id },
       data: { deletedAt: new Date() },
@@ -250,11 +270,9 @@ export class ProductsService {
     });
   }
 
-  // Aumento/baja masivo de precios
   async bulkPriceUpdate(dto: BulkPriceUpdateDto) {
     const { percentChange, categoryId, reason } = dto;
 
-    // Obtener productos a actualizar
     const where: any = { deletedAt: null };
     if (categoryId) {
       where.categoryId = categoryId;
@@ -269,19 +287,16 @@ export class ProductsService {
       };
     }
 
-    // Calcular el motivo del cambio
     const changeReason =
       reason ||
       (categoryId
         ? `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (categoría)`
         : `Ajuste masivo ${percentChange > 0 ? '+' : ''}${percentChange}% (todos)`);
 
-    // Actualizar cada producto y crear historial
     const updates = products.map(async (product) => {
       const oldPrice = product.price;
       const newPrice = Math.round(oldPrice * (1 + percentChange / 100));
 
-      // Crear registro de historial
       await this.prisma.priceHistory.create({
         data: {
           productId: product.id,
@@ -292,7 +307,6 @@ export class ProductsService {
         },
       });
 
-      // Actualizar precio del producto
       return this.prisma.product.update({
         where: { id: product.id },
         data: { price: newPrice },
@@ -308,14 +322,13 @@ export class ProductsService {
     };
   }
 
-  // Obtener historial de precios de un producto
   async getPriceHistory(productId: string) {
-    await this.findOne(productId); // Verificar que existe
+    await this.findOne(productId);
 
     return this.prisma.priceHistory.findMany({
       where: { productId },
       orderBy: { createdAt: 'desc' },
-      take: 50, // Últimos 50 cambios
+      take: 50,
     });
   }
 }

@@ -29,6 +29,16 @@ class CreateProductFlavorDto {
   @Min(0)
   stockQuantity: number;
 
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  price?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  purchasePrice?: number;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
@@ -62,6 +72,15 @@ export class CreateProductDto {
   @IsInt()
   @IsOptional()
   stockQuantity?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  purchasePrice?: number;
+
+  @IsString()
+  @IsOptional()
+  defaultSupplierId?: string;
 
   @IsString()
   @IsOptional()

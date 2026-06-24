@@ -1,5 +1,5 @@
 import { ReportsSummary } from "@/lib/api/sales";
-import { DollarSign, ShoppingBag, Package, TrendingUp } from "lucide-react";
+import { DollarSign, ShoppingBag, Package, TrendingUp, PiggyBank } from "lucide-react";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-AR", {
@@ -50,8 +50,8 @@ interface SummaryCardsProps {
 export default function SummaryCards({ summary, loading }: SummaryCardsProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}
       </div>
     );
   }
@@ -87,10 +87,21 @@ export default function SummaryCards({ summary, loading }: SummaryCardsProps) {
       sub: "por venta",
       accent: "bg-amber-50 text-amber-600",
     },
+    {
+      icon: <PiggyBank className="w-5 h-5" />,
+      label: "Ganancia Neta",
+      value: summary.totalCost > 0
+        ? formatCurrency(summary.netProfit)
+        : "—",
+      sub: summary.totalCost > 0
+        ? `${Math.round((summary.netProfit / (summary.netProfit + summary.totalCost)) * 100)}% margen`
+        : "sin datos de costo",
+      accent: "bg-green-50 text-green-600",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((c) => (
         <Card key={c.label} {...c} />
       ))}

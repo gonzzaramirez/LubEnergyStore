@@ -26,9 +26,16 @@ export class SalesController {
 
   @Get()
   findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.salesService.findAll(startDate, endDate);
+    return this.salesService.findAll(
+      startDate,
+      endDate,
+      page ? Math.max(1, parseInt(page, 10)) : 1,
+      limit ? Math.min(Math.max(1, parseInt(limit, 10)), 100) : 20,
+    );
   }
 }

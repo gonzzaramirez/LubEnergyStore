@@ -15,6 +15,8 @@ import {
   Smartphone,
   Bell,
   Store,
+  Truck,
+  ClipboardList,
 } from "lucide-react";
 import { logout } from "@/lib/api/auth";
 import { useState } from "react";
@@ -25,6 +27,8 @@ const navItems = [
   { href: "/dashboard/ventas", label: "Ventas", icon: Store },
   { href: "/dashboard/productos", label: "Productos", icon: Package },
   { href: "/dashboard/categorias", label: "Categorías", icon: Tags },
+  { href: "/dashboard/proveedores", label: "Proveedores", icon: Truck },
+  { href: "/dashboard/compras", label: "Compras", icon: ClipboardList },
   { href: "/dashboard/precios", label: "Ajustar Precios", icon: TrendingUp },
   { href: "/dashboard/descuentos", label: "Códigos Descuento", icon: Ticket },
   { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },

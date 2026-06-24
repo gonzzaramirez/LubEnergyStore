@@ -68,7 +68,64 @@ enum Location {
   @@map("location")
 }
 
+enum POStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+
+  @@map("po_status")
+}
+
 // --- MODELOS (TABLAS) ---
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(200)
+  contact   String?  @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  email     String?  @db.VarChar(255)
+  notes     String?  @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    PurchaseOrder[]
+  products  Product[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id          String        @id @default(uuid())
+  supplierId  String        @map("supplier_id")
+  status      POStatus      @default(PENDING)
+  notes       String?       @db.Text
+  totalAmount Int           @default(0)
+  createdAt   DateTime      @default(now())
+  receivedAt  DateTime?     @map("received_at")
+  updatedAt   DateTime      @updatedAt
+  supplier    Supplier      @relation(fields: [supplierId], references: [id])
+  lines       PurchaseOrderLine[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id                String          @id @default(uuid())
+  orderId           String          @map("order_id")
+  productId         String?         @map("product_id")
+  flavorId          String?         @map("flavor_id")
+  productName       String          @map("product_name") @db.VarChar(200)
+  flavorName        String?         @map("flavor_name") @db.VarChar(100)
+  quantity          Int
+  remaining         Int             @default(0)
+  unitPurchasePrice Int             @map("unit_purchase_price")
+  unitSalePrice     Int?            @map("unit_sale_price")
+  purchaseOrder     PurchaseOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product?        @relation(fields: [productId], references: [id])
+  flavor            ProductFlavor?  @relation(fields: [flavorId], references: [id])
+
+  @@map("purchase_order_lines")
+}
 
 model User {
   id           String    @id @default(uuid())
@@ -135,6 +192,8 @@ model Product {
   description   String    @db.Text
   price         Int       // Precio en pesos argentinos
   stockQuantity Int       @default(0) @map("stock_quantity")
+  purchasePrice Int?      @map("purchase_price")
+  defaultSupplierId String? @map("default_supplier_id")
   imageUrl      String?   @map("image_url")
   isActive      Boolean   @default(true) @map("is_active")
   isFeatured    Boolean   @default(false) @map("is_featured")
@@ -153,11 +212,13 @@ model Product {
   deletedAt     DateTime? @map("deleted_at")
 
   category         Category? @relation(fields: [categoryId], references: [id])
+  defaultSupplier  Supplier? @relation(fields: [defaultSupplierId], references: [id])
   orderItems       OrderItem[]
   priceHistory     PriceHistory[]
   flavors          ProductFlavor[]
-  creatineTrackers CreatineTracker[]
-  sales            Sale[]
+  creatineTrackers  CreatineTracker[]
+  sales             Sale[]
+  purchaseOrderLines PurchaseOrderLine[]
 
   @@map("products")
 }
@@ -169,13 +230,16 @@ model ProductFlavor {
   sku           String?  @unique @db.VarChar(50)
   imageUrl      String?  @map("image_url")
   stockQuantity Int      @default(0) @map("stock_quantity")
+  price         Int?     // Sale price override for this flavor
+  purchasePrice Int?     @map("purchase_price")
   isActive      Boolean  @default(true) @map("is_active")
 
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  orderItems    OrderItem[]
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems         OrderItem[]
+  purchaseOrderLines PurchaseOrderLine[]
 
   @@map("product_flavors")
 }
@@ -328,6 +392,8 @@ model Sale {
   totalAmount     Int           @map("total_amount")
   paymentMethod   PaymentMethod @map("payment_method")
   location        Location
+  purchasePrice   Int?          @map("purchase_price")
+  unitSalePrice   Int?          @map("unit_sale_price")
   createdAt       DateTime      @default(now()) @map("created_at")
 
   product         Product       @relation(fields: [productId], references: [id])

@@ -1,28 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { getSales, Sale } from "@/lib/api/sales";
 import SalesTable from "./components/sales-table";
 import CreateSaleDialog from "./components/create-sale-dialog";
 import { Plus } from "lucide-react";
 
-export default function VentasPage() {
+export default function VentasPageWrapper() {
+  return (
+    <Suspense fallback={<div className="p-4 text-slate-500">Cargando...</div>}>
+      <VentasPage />
+    </Suspense>
+  );
+}
+
+function VentasPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Date filters
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Date filters from URL
+  const [startDate, setStartDate] = useState(searchParams.get("startDate") || "");
+  const [endDate, setEndDate] = useState(searchParams.get("endDate") || "");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const updateURL = useCallback(
+    (params: Record<string, string | undefined>) => {
+      const next = new URLSearchParams(searchParams.toString());
+      for (const [key, val] of Object.entries(params)) {
+        if (val) next.set(key, val);
+        else next.delete(key);
+      }
+      const qs = next.toString();
+      router.replace(`/dashboard/ventas${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const goToPage = (page: number) => {
+    updateURL({ page: page > 1 ? String(page) : undefined });
+  };
 
   const fetchSales = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getSales(startDate || undefined, endDate || undefined);
-      setSales(data);
+      const response = await getSales(
+        currentPage,
+        20,
+        startDate || undefined,
+        endDate || undefined,
+      );
+      setSales(response.data);
+      setTotalPages(response.totalPages);
     } catch (err: any) {
       setError(err.message || "Error al cargar las ventas");
     } finally {
@@ -32,9 +70,10 @@ export default function VentasPage() {
 
   useEffect(() => {
     fetchSales();
-  }, [startDate, endDate]);
+  }, [currentPage, startDate, endDate]);
 
   const handleSaleCreated = () => {
+    goToPage(1);
     fetchSales();
     setIsDialogOpen(false);
   };
@@ -65,7 +104,10 @@ export default function VentasPage() {
           <input
             type="date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              updateURL({ startDate: e.target.value || undefined, page: undefined });
+            }}
             className="px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
@@ -74,13 +116,20 @@ export default function VentasPage() {
           <input
             type="date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              updateURL({ endDate: e.target.value || undefined, page: undefined });
+            }}
             className="px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
         <div className="w-full md:w-auto flex items-center justify-between gap-2">
           <button
-            onClick={() => { setStartDate(""); setEndDate(""); }}
+            onClick={() => {
+              setStartDate("");
+              setEndDate("");
+              updateURL({ startDate: undefined, endDate: undefined, page: undefined });
+            }}
             className="text-sm text-slate-500 hover:text-black underline"
           >
             Limpiar filtros
@@ -93,7 +142,7 @@ export default function VentasPage() {
       ) : loading ? (
         <div className="py-12 flex justify-center text-slate-500">Cargando ventas...</div>
       ) : (
-        <SalesTable sales={sales} />
+        <SalesTable sales={sales} page={currentPage} totalPages={totalPages} onPageChange={goToPage} />
       )}
 
       {isDialogOpen && (

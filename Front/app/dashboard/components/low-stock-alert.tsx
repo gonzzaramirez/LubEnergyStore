@@ -4,8 +4,17 @@ import { AlertTriangle, ArrowRight, Package } from "lucide-react";
 
 const LOW_STOCK_THRESHOLD = 5;
 
+/** Stock real: si el producto tiene sabores activos, suma el stock de todos. Si no, usa el del producto. */
+function getEffectiveStock(product: Product): number {
+  if (product.flavors && product.flavors.length > 0) {
+    return product.flavors.reduce((sum, f) => sum + f.stockQuantity, 0);
+  }
+  return product.stockQuantity ?? 0;
+}
+
 function StockBadge({ stock }: { stock: number }) {
-  if (stock === 0) {
+  const display = Math.max(0, stock);
+  if (display === 0) {
     return (
       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
         Sin stock
@@ -14,7 +23,7 @@ function StockBadge({ stock }: { stock: number }) {
   }
   return (
     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-      {stock} ud{stock !== 1 ? "s" : ""}.
+      {display} ud{display !== 1 ? "s" : ""}.
     </span>
   );
 }
@@ -39,11 +48,15 @@ interface LowStockAlertProps {
 
 export default function LowStockAlert({ products, loading }: LowStockAlertProps) {
   const lowStock = products
-    .filter((p) => p.isActive !== false && (p.stockQuantity ?? 0) <= LOW_STOCK_THRESHOLD)
-    .sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0))
+    .filter((p) => {
+      if (p.isActive === false) return false;
+      const stock = getEffectiveStock(p);
+      return stock <= LOW_STOCK_THRESHOLD;
+    })
+    .sort((a, b) => getEffectiveStock(a) - getEffectiveStock(b))
     .slice(0, 8);
 
-  const outOfStock = lowStock.filter((p) => (p.stockQuantity ?? 0) === 0).length;
+  const outOfStock = lowStock.filter((p) => getEffectiveStock(p) === 0).length;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -101,7 +114,7 @@ export default function LowStockAlert({ products, loading }: LowStockAlertProps)
                   {product.category?.name ?? "Sin categoría"} · SKU {product.sku}
                 </p>
               </div>
-              <StockBadge stock={product.stockQuantity ?? 0} />
+              <StockBadge stock={getEffectiveStock(product)} />
             </div>
           ))}
         </div>

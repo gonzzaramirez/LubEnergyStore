@@ -60,8 +60,10 @@ export class EmailService {
       this.logger.warn(
         'RESEND_API_KEY no configurada. Los emails no se enviarán.',
       );
+      this.resend = null as unknown as Resend;
+    } else {
+      this.resend = new Resend(apiKey);
     }
-    this.resend = new Resend(apiKey);
     this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
   }
 
@@ -259,6 +261,7 @@ export class EmailService {
   }
 
   async sendOrderConfirmation(data: OrderEmailData): Promise<boolean> {
+    if (!this.resend) return false;
     const html = `
       <!DOCTYPE html>
       <html>
@@ -320,6 +323,7 @@ export class EmailService {
   }
 
   async sendTrackingUpdate(data: OrderEmailData): Promise<boolean> {
+    if (!this.resend) return false;
     const html = `
       <!DOCTYPE html>
       <html>

@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Percent, History, TrendingUp, Package, Plus, Trash2 } from "lucide-react";
-import { UpdateProductDto, Product, Category, PriceHistory } from "@/lib/types";
+import { UpdateProductDto, Product, Category, PriceHistory, Supplier } from "@/lib/types";
 import { updateProduct, getPriceHistory } from "@/lib/api/product";
+import { getSuppliers } from "@/lib/api/suppliers";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/products";
 import {
@@ -53,6 +54,13 @@ export function EditProductDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getSuppliers().then(setSuppliers).catch(() => {});
+    }
+  }, [open]);
 
   const {
     register,
@@ -78,6 +86,8 @@ export function EditProductDialog({
         description: product.description,
         price: product.price,
         stockQuantity: product.stockQuantity,
+        purchasePrice: product.purchasePrice ?? undefined,
+        defaultSupplierId: product.defaultSupplierId ?? undefined,
         imageUrl: product.imageUrl,
         isActive: product.isActive,
         isFeatured: product.isFeatured,
@@ -88,6 +98,8 @@ export function EditProductDialog({
           sku: f.sku,
           imageUrl: f.imageUrl,
           stockQuantity: f.stockQuantity,
+          price: f.price ?? undefined,
+          purchasePrice: f.purchasePrice ?? undefined,
           isActive: f.isActive
         })) || [],
         // Promociones
@@ -256,6 +268,42 @@ export function EditProductDialog({
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="edit-purchasePrice">Precio de compra</Label>
+              <Input
+                id="edit-purchasePrice"
+                type="number"
+                placeholder="0"
+                {...register("purchasePrice", { valueAsNumber: true })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Costo por unidad (opcional)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-defaultSupplierId">Proveedor por defecto</Label>
+              <Select
+                value={watch("defaultSupplierId") || ""}
+                onValueChange={(value) => setValue("defaultSupplierId", value || undefined)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin proveedor</SelectItem>
+                  {suppliers.filter((s) => s.isActive).map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Se autocompletará al crear una orden de compra
+              </p>
+            </div>
+
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="edit-imageUrl">URL de Imagen</Label>
               <Input
@@ -343,6 +391,24 @@ export function EditProductDialog({
                           <Input
                             placeholder="https://..."
                             {...register(`flavors.${index}.imageUrl` as const)}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>Precio venta (opcional)</Label>
+                          <Input
+                            type="number"
+                            placeholder="Ej: 15000"
+                            {...register(`flavors.${index}.price` as const, { valueAsNumber: true })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Precio compra (opcional)</Label>
+                          <Input
+                            type="number"
+                            placeholder="Ej: 5000"
+                            {...register(`flavors.${index}.purchasePrice` as const, { valueAsNumber: true })}
                           />
                         </div>
                       </div>

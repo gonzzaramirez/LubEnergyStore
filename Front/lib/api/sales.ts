@@ -10,6 +10,8 @@ export interface Sale {
   totalAmount: number;
   paymentMethod: SalePaymentMethod;
   location: SaleLocation;
+  purchasePrice: number | null;
+  unitSalePrice: number | null;
   createdAt: string;
   product?: {
     name: string;
@@ -32,6 +34,8 @@ export interface ReportsSummary {
   totalSales: number;
   totalUnits: number;
   avgTicket: number;
+  totalCost: number;
+  netProfit: number;
 }
 
 export interface RevenueByLocation {
@@ -93,8 +97,23 @@ export interface ReportsFilters {
   paymentMethod?: SalePaymentMethod;
 }
 
-export async function getSales(startDate?: string, endDate?: string): Promise<Sale[]> {
+export interface PaginatedSalesResponse {
+  data: Sale[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export async function getSales(
+  page?: number,
+  limit?: number,
+  startDate?: string,
+  endDate?: string,
+): Promise<PaginatedSalesResponse> {
   const url = new URL(`${API_URL}/sales`);
+  if (page) url.searchParams.append('page', page.toString());
+  if (limit) url.searchParams.append('limit', limit.toString());
   if (startDate) url.searchParams.append('startDate', startDate);
   if (endDate) url.searchParams.append('endDate', endDate);
 

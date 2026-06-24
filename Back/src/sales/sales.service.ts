@@ -20,17 +20,61 @@ export class SalesService {
     const { productId, quantity, paymentMethod, location, createdAt } =
       createSaleDto;
 
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
-    });
-
-    if (!product) {
-      throw new BadRequestException('Product not found');
-    }
-
-    const totalAmount = product.price * quantity;
-
     return this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        select: { stockQuantity: true, price: true, name: true },
+      });
+
+      if (!product) {
+        throw new BadRequestException('Producto no encontrado');
+      }
+
+      if (product.stockQuantity < quantity) {
+        throw new BadRequestException(
+          `Stock insuficiente para "${product.name}". Disponible: ${product.stockQuantity}, Solicitado: ${quantity}`,
+        );
+      }
+
+      const totalAmount = product.price * quantity;
+
+      // FIFO cost allocation (R-FIFO-01 through R-FIFO-04)
+      let purchasePrice: number | null = null;
+      let unitSalePrice: number | null = null;
+      const fifoLines = await tx.purchaseOrderLine.findMany({
+        where: {
+          productId,
+          remaining: { gt: 0 },
+        },
+        orderBy: { purchaseOrder: { receivedAt: 'asc' } },
+      });
+
+      let toConsume = quantity;
+      let totalCost = 0;
+      let totalSaleValue = 0;
+      let hasSalePrice = false;
+      for (const line of fifoLines) {
+        if (toConsume <= 0) break;
+        const take = Math.min(line.remaining, toConsume);
+        totalCost += take * line.unitPurchasePrice;
+        if (line.unitSalePrice != null) {
+          totalSaleValue += take * line.unitSalePrice;
+          hasSalePrice = true;
+        }
+        toConsume -= take;
+        await tx.purchaseOrderLine.update({
+          where: { id: line.id },
+          data: { remaining: { decrement: take } },
+        });
+      }
+
+      if (toConsume === 0 && quantity > 0) {
+        purchasePrice = Math.round(totalCost / quantity);
+        if (hasSalePrice) {
+          unitSalePrice = Math.round(totalSaleValue / quantity);
+        }
+      }
+
       await tx.product.update({
         where: { id: productId },
         data: { stockQuantity: { decrement: quantity } },
@@ -41,6 +85,8 @@ export class SalesService {
           productId,
           quantity,
           totalAmount,
+          purchasePrice,
+          unitSalePrice,
           paymentMethod,
           location,
           createdAt: createdAt ? new Date(createdAt) : undefined,
@@ -68,18 +114,38 @@ export class SalesService {
     return Object.keys(createdAt).length ? createdAt : undefined;
   }
 
-  async findAll(startDate?: string, endDate?: string) {
+  async findAll(
+    startDate?: string,
+    endDate?: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
     const where: any = {};
     const dateFilter = this.buildDateWhere(startDate, endDate);
     if (dateFilter) where.createdAt = dateFilter;
 
-    return this.prisma.sale.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        product: { select: { name: true, price: true } },
-      },
-    });
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.sale.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          product: { select: { name: true, price: true } },
+        },
+      }),
+      this.prisma.sale.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+    };
   }
 
   async getReports(filters: ReportsFilters) {
@@ -108,6 +174,25 @@ export class SalesService {
     const totalUnits = sales.reduce((s, v) => s + v.quantity, 0);
     const totalSales = sales.length;
     const avgTicket = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
+
+    // Cost & profit (R-REP-01)
+    // Net profit uses unitSalePrice from the purchase order (if available),
+    // falling back to actual totalAmount for sales without purchase-level pricing.
+    const totalCost = sales.reduce((sum, s) => {
+      if (s.purchasePrice != null) {
+        return sum + s.quantity * s.purchasePrice;
+      }
+      return sum;
+    }, 0);
+    const netProfit = sales.reduce((sum, s) => {
+      if (s.unitSalePrice != null && s.purchasePrice != null) {
+        return sum + s.quantity * (s.unitSalePrice - s.purchasePrice);
+      }
+      if (s.purchasePrice != null) {
+        return sum + s.totalAmount - s.quantity * s.purchasePrice;
+      }
+      return sum + s.totalAmount;
+    }, 0);
 
     // --- By location ---
     const locationMap = new Map<string, { revenue: number; count: number; units: number }>();
@@ -202,7 +287,7 @@ export class SalesService {
       .map(([date, data]) => ({ date, ...data }));
 
     return {
-      summary: { totalRevenue, totalSales, totalUnits, avgTicket },
+      summary: { totalRevenue, totalSales, totalUnits, avgTicket, totalCost, netProfit },
       revenueByLocation,
       revenueByPaymentMethod,
       topProducts,

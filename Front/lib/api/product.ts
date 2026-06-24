@@ -179,15 +179,17 @@ export async function updateProductStock(
 
   if (flavorId && product.flavors) {
     // Actualizar stock del sabor específico
-    const updatedFlavors = product.flavors.map((flavor) => {
-      if (flavor.id === flavorId) {
-        return {
-          ...flavor,
-          stockQuantity: flavor.stockQuantity + quantityToAdd,
-        };
-      }
-      return flavor;
-    });
+    const updatedFlavors = product.flavors.map((flavor) => ({
+      name: flavor.name,
+      sku: flavor.sku || undefined,
+      imageUrl: flavor.imageUrl || undefined,
+      stockQuantity: flavor.id === flavorId
+        ? flavor.stockQuantity + quantityToAdd
+        : flavor.stockQuantity,
+      price: flavor.price ?? undefined,
+      purchasePrice: flavor.purchasePrice ?? undefined,
+      isActive: flavor.isActive,
+    }));
     updateData = { flavors: updatedFlavors };
   } else {
     // Actualizar stock del producto principal

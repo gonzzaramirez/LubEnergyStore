@@ -18,6 +18,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { CreatineTrackerModule } from './creatine-tracker/creatine-tracker.module';
 import { SalesModule } from './sales/sales.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { PurchasesModule } from './purchases/purchases.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { SalesModule } from './sales/sales.module';
     WhatsappModule,
     CreatineTrackerModule,
     SalesModule,
+    SuppliersModule,
+    PurchasesModule,
   ],
   controllers: [AppController],
   providers: [

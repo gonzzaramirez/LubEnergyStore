@@ -6,6 +6,8 @@ export interface ProductFlavor {
   sku?: string;
   imageUrl?: string;
   stockQuantity: number;
+  price?: number | null;
+  purchasePrice?: number | null;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -16,6 +18,8 @@ export interface CreateProductFlavorDto {
   sku?: string;
   imageUrl?: string;
   stockQuantity: number;
+  price?: number;
+  purchasePrice?: number;
   isActive?: boolean;
 }
 
@@ -28,6 +32,8 @@ export interface Product {
   description: string;
   price: number;
   stockQuantity?: number;
+  purchasePrice?: number | null;
+  defaultSupplierId?: string | null;
   imageUrl?: string;
   isActive?: boolean;
   isFeatured?: boolean;
@@ -42,6 +48,7 @@ export interface Product {
   updatedAt?: string;
   category?: Category;
   flavors?: ProductFlavor[];
+  defaultSupplier?: { id: string; name: string } | null;
 }
 
 export interface CreateProductDto {
@@ -52,6 +59,8 @@ export interface CreateProductDto {
   description: string;
   price: number;
   stockQuantity?: number;
+  purchasePrice?: number;
+  defaultSupplierId?: string;
   imageUrl?: string;
   isActive?: boolean;
   isFeatured?: boolean;
@@ -211,6 +220,60 @@ export interface CreateOrderDto {
     unitPrice: number;
   }[];
   totalAmount: number;
+}
+
+// Supplier Types
+export interface Supplier {
+  id: string;
+  name: string;
+  contact?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSupplierDto {
+  name: string;
+  contact?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+}
+
+export interface UpdateSupplierDto extends Partial<CreateSupplierDto> {}
+
+// Purchase Order Types
+export type POStatus = 'PENDING' | 'RECEIVED' | 'CANCELLED';
+
+export interface PurchaseOrderLine {
+  id: string;
+  orderId: string;
+  productId: string | null;
+  flavorId: string | null;
+  productName: string;
+  flavorName: string | null;
+  quantity: number;
+  remaining: number;
+  unitPurchasePrice: number;
+  unitSalePrice?: number | null;
+  product?: Product | null;
+  flavor?: ProductFlavor | null;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  supplierId: string;
+  status: POStatus;
+  notes?: string;
+  totalAmount: number;
+  createdAt: string;
+  receivedAt?: string;
+  updatedAt: string;
+  supplier: Supplier;
+  lines: PurchaseOrderLine[];
 }
 
 export interface CreateOrderResponse {

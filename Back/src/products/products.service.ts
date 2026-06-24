@@ -145,6 +145,9 @@ export class ProductsService {
         flavors: {
           where: { isActive: true },
         },
+        defaultSupplier: {
+          select: { id: true, name: true },
+        },
       },
     });
   }
@@ -165,6 +168,9 @@ export class ProductsService {
       include: {
         category: true,
         flavors: true,
+        defaultSupplier: {
+          select: { id: true, name: true },
+        },
       },
     });
 

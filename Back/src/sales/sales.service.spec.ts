@@ -102,7 +102,7 @@ describe('SalesService', () => {
           paymentMethod: 'CASH',
           location: 'CORRIENTES',
         }),
-        include: { product: { select: { name: true, price: true } } },
+        include: { product: { select: { name: true, price: true } }, flavor: { select: { id: true, name: true } } },
       });
       expect(result.totalAmount).toBe(300);
     });

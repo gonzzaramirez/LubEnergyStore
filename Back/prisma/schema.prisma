@@ -240,6 +240,7 @@ model ProductFlavor {
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems         OrderItem[]
   purchaseOrderLines PurchaseOrderLine[]
+  sales              Sale[]
 
   @@map("product_flavors")
 }
@@ -388,6 +389,7 @@ model OrderItem {
 model Sale {
   id              String        @id @default(uuid())
   productId       String        @map("product_id")
+  flavorId        String?       @map("flavor_id")
   quantity        Int
   totalAmount     Int           @map("total_amount")
   paymentMethod   PaymentMethod @map("payment_method")
@@ -397,6 +399,7 @@ model Sale {
   createdAt       DateTime      @default(now()) @map("created_at")
 
   product         Product       @relation(fields: [productId], references: [id])
+  flavor          ProductFlavor? @relation(fields: [flavorId], references: [id])
 
   @@map("sales")
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPurchase, PurchaseOrderLineDto } from "@/lib/api/purchases";
 import { getSuppliers } from "@/lib/api/suppliers";
 import { getProducts } from "@/lib/api/product";
-import type { Supplier, Product } from "@/lib/types";
+import type { Supplier, Product, ProductFlavor } from "@/lib/types";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -43,27 +43,38 @@ export default function NuevaCompraPage() {
     setLines(lines.filter((_, i) => i !== idx));
   };
 
+  const getProductById = (id: string) => products.find((p) => p.id === id);
+
   const updateLine = (idx: number, field: keyof PurchaseOrderLineDto, value: any) => {
     const updated = lines.map((line, i) => {
       if (i !== idx) return line;
       const newLine = { ...line, [field]: value };
 
-      // If a product is selected, auto-fill name, prices, and supplier
+      // When product selection changes, auto-fill everything
       if (field === "productId" && value) {
-        const prod = products.find((p) => p.id === value);
+        const prod = getProductById(value);
         if (prod) {
           newLine.productName = prod.name;
+          newLine.flavorId = undefined;
+          newLine.flavorName = undefined;
           if (newLine.unitSalePrice == null) {
             newLine.unitSalePrice = prod.price;
           }
           if (prod.purchasePrice && (!newLine.unitPurchasePrice || newLine.unitPurchasePrice === 0)) {
             newLine.unitPurchasePrice = prod.purchasePrice;
           }
-          // Auto-fill supplier if product has a default and none is selected
           if (prod.defaultSupplierId && !supplierId) {
             setSupplierId(prod.defaultSupplierId);
           }
         }
+        // Reset prices when deselected (shouldn't happen but just in case)
+      } else if (field === "productId" && !value) {
+        newLine.productId = undefined;
+        newLine.flavorId = undefined;
+        newLine.flavorName = undefined;
+        newLine.productName = "";
+        newLine.unitPurchasePrice = 0;
+        newLine.unitSalePrice = undefined;
       }
 
       return newLine;
@@ -113,7 +124,7 @@ export default function NuevaCompraPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/compras"
@@ -179,75 +190,121 @@ export default function NuevaCompraPage() {
             </p>
           )}
 
-          {lines.map((line, idx) => (
-            <div key={idx} className="flex gap-3 items-start border-b border-slate-100 pb-4 last:border-0">
-              <div className="flex-1 space-y-1">
-                <label className="text-xs text-slate-500">Producto</label>
-                <select
-                  value={line.productId || ""}
-                  onChange={(e) => updateLine(idx, "productId", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                >
-                  <option value="">Sin producto (nombre libre)</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — ${p.price.toLocaleString("es-AR")}
-                    </option>
-                  ))}
-                </select>
+          {lines.map((line, idx) => {
+            const selectedProduct = line.productId ? getProductById(line.productId) : null;
+            const hasFlavors = selectedProduct && selectedProduct.flavors && selectedProduct.flavors.length > 0;
+
+            return (
+              <div key={idx} className="flex flex-col gap-3 border-b border-slate-100 pb-4 last:border-0">
+                <div className="flex gap-3 items-start">
+                  {/* Product selector — mandatory */}
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-slate-500 font-medium">Producto *</label>
+                    <select
+                      value={line.productId || ""}
+                      onChange={(e) => updateLine(idx, "productId", e.target.value || undefined)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                      required
+                    >
+                      <option value="">Seleccioná un producto...</option>
+                      {products.filter((p) => p.isActive).map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} — ${p.price.toLocaleString("es-AR")}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Flavor selector — shown only when product has flavors */}
+                  {hasFlavors && (
+                    <div className="w-48 space-y-1">
+                      <label className="text-xs text-slate-500 font-medium">Variante *</label>
+                      <select
+                        value={line.flavorId || ""}
+                        onChange={(e) => {
+                          const flavor = selectedProduct!.flavors!.find((f) => f.id === e.target.value);
+                          updateLine(idx, "flavorId", e.target.value || undefined);
+                          updateLine(idx, "flavorName", flavor?.name || undefined);
+                        }}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                        required
+                      >
+                        <option value="">Elegí variante...</option>
+                        {selectedProduct!.flavors!.filter((f) => f.isActive).map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name} {f.price ? `($${f.price.toLocaleString("es-AR")})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Quantity */}
+                  <div className="w-20 space-y-1">
+                    <label className="text-xs text-slate-500 font-medium">Cant.</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={line.quantity}
+                      onChange={(e) => updateLine(idx, "quantity", parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                    />
+                  </div>
+
+                  {/* Purchase price */}
+                  <div className="w-28 space-y-1">
+                    <label className="text-xs text-slate-500 font-medium">P. compra</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={line.unitPurchasePrice}
+                      onChange={(e) => updateLine(idx, "unitPurchasePrice", parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                      required
+                    />
+                  </div>
+
+                  {/* Sale price */}
+                  <div className="w-28 space-y-1">
+                    <label className="text-xs text-slate-500 font-medium">P. venta</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={line.unitSalePrice ?? ""}
+                      onChange={(e) =>
+                        updateLine(idx, "unitSalePrice", e.target.value ? parseInt(e.target.value) : undefined)
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                      placeholder="Opcional"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeLine(idx)}
+                    className="mt-6 p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Summary row: shows linked status and prices */}
+                <div className="flex gap-4 text-xs text-slate-400 ml-1">
+                  <span>
+                    {line.productId
+                      ? selectedProduct
+                        ? `✓ ${selectedProduct.name}`
+                        : "⚠ Producto no encontrado"
+                      : "⚠ Sin producto — el stock no se actualizará"}
+                  </span>
+                  {line.flavorName && <span>› {line.flavorName}</span>}
+                  {line.unitSalePrice != null && (
+                    <span>Venta sugerida: ${line.unitSalePrice.toLocaleString("es-AR")}</span>
+                  )}
+                </div>
               </div>
-              <div className="flex-[1.5] space-y-1">
-                  <label className="text-xs text-slate-500">Nombre</label>
-                  <input
-                    value={line.productName}
-                    onChange={(e) => updateLine(idx, "productName", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                    placeholder="Nombre del producto"
-                    required
-                  />
-                </div>
-                <div className="w-20 space-y-1">
-                  <label className="text-xs text-slate-500">Cant.</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={line.quantity}
-                    onChange={(e) => updateLine(idx, "quantity", parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                  />
-                </div>
-                <div className="w-28 space-y-1">
-                  <label className="text-xs text-slate-500">P. compra</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={line.unitPurchasePrice}
-                    onChange={(e) => updateLine(idx, "unitPurchasePrice", parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                  />
-                </div>
-                <div className="w-28 space-y-1">
-                  <label className="text-xs text-slate-500">P. venta</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={line.unitSalePrice ?? ""}
-                    onChange={(e) =>
-                      updateLine(idx, "unitSalePrice", e.target.value ? parseInt(e.target.value) : undefined)
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                    placeholder="Opcional"
-                  />
-                </div>
-              <button
-                type="button"
-                onClick={() => removeLine(idx)}
-                className="mt-6 p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
           {lines.length > 0 && (
             <div className="text-right font-semibold text-lg pt-2 border-t border-slate-200">

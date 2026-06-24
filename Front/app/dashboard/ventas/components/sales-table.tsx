@@ -55,6 +55,11 @@ export default function SalesTable({ sales, page, totalPages, onPageChange }: Sa
                 </td>
                 <td className="px-6 py-4 text-slate-600 font-medium">
                   {sale.product?.name || "Producto Desconocido"}
+                  {sale.flavor?.name && (
+                    <span className="text-slate-400 font-normal ml-1">
+                      ({sale.flavor.name})
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-slate-600">
                   {sale.quantity}

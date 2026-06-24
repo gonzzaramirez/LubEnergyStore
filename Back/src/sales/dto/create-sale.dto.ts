@@ -13,6 +13,10 @@ export class CreateSaleDto {
   @IsNotEmpty()
   productId: string;
 
+  @IsString()
+  @IsOptional()
+  flavorId?: string;
+
   @IsInt()
   @Min(1)
   quantity: number;

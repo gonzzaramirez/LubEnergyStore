@@ -20,11 +20,12 @@ export default function CreateSaleDialog({
   const [search, setSearch] = useState("");
 
   const [productId, setProductId] = useState("");
+  const [flavorId, setFlavorId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TRANSFER'>('CASH');
   const [location, setLocation] = useState<'CORRIENTES' | 'MONTE_CASEROS'>('CORRIENTES');
   
-  // Date initialized to current datetime (local to user browser, assuming Argentina)
+  // Date initialized to current datetime
   const [dateStr, setDateStr] = useState("");
   const [timeStr, setTimeStr] = useState("");
 
@@ -33,9 +34,7 @@ export default function CreateSaleDialog({
 
   useEffect(() => {
     const now = new Date();
-    // format as YYYY-MM-DD
     setDateStr(format(now, "yyyy-MM-dd"));
-    // format as HH:mm
     setTimeStr(format(now, "HH:mm"));
 
     const fetchProds = async () => {
@@ -60,7 +59,17 @@ export default function CreateSaleDialog({
   }, [products, search]);
 
   const selectedProduct = products.find(p => p.id === productId);
-  const calculatedTotal = selectedProduct ? selectedProduct.price * quantity : 0;
+  const hasFlavors = selectedProduct && selectedProduct.flavors && selectedProduct.flavors.length > 0;
+  const selectedFlavor = hasFlavors ? selectedProduct!.flavors!.find(f => f.id === flavorId) : null;
+
+  // Price: flavor override > product price
+  const unitPrice = selectedFlavor?.price ?? selectedProduct?.price ?? 0;
+  const calculatedTotal = unitPrice * quantity;
+
+  const handleProductSelect = (id: string) => {
+    setProductId(id);
+    setFlavorId(""); // Reset flavor when product changes
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,13 +77,15 @@ export default function CreateSaleDialog({
       setError("Debes seleccionar un producto.");
       return;
     }
+    if (hasFlavors && !flavorId) {
+      setError("Este producto tiene variantes. Seleccioná una para continuar.");
+      return;
+    }
     
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Build date from dateStr + timeStr
-      // If user is in Argentina, this will create Date in local timezone correctly
       let createdAt;
       if (dateStr && timeStr) {
         createdAt = new Date(`${dateStr}T${timeStr}:00`).toISOString();
@@ -82,6 +93,7 @@ export default function CreateSaleDialog({
 
       await createSale({
         productId,
+        flavorId: flavorId || undefined,
         quantity,
         paymentMethod,
         location,
@@ -142,23 +154,58 @@ export default function CreateSaleDialog({
                 ) : filteredProducts.length === 0 ? (
                   <p className="text-sm text-slate-500 p-2">No se encontraron productos.</p>
                 ) : (
-                  filteredProducts.map(product => (
-                    <div 
-                      key={product.id}
-                      onClick={() => setProductId(product.id)}
-                      className={`p-2 rounded-md cursor-pointer flex justify-between items-center text-sm transition-colors ${
-                        productId === product.id 
-                          ? "bg-black text-white" 
-                          : "hover:bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      <span>{product.name}</span>
-                      <span className="font-bold">{formatPrice(product.price)}</span>
-                    </div>
-                  ))
+                  filteredProducts.map(product => {
+                    const hasVariants = product.flavors && product.flavors.length > 0;
+                    return (
+                      <div 
+                        key={product.id}
+                        onClick={() => handleProductSelect(product.id)}
+                        className={`p-2 rounded-md cursor-pointer flex justify-between items-center text-sm transition-colors ${
+                          productId === product.id 
+                            ? "bg-black text-white" 
+                            : "hover:bg-slate-200 text-slate-700"
+                        }`}
+                      >
+                        <span>
+                          {product.name}
+                          {hasVariants && (
+                            <span className="ml-2 text-xs opacity-60">
+                              ({product.flavors!.length} variantes)
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-bold">{formatPrice(product.price)}</span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
+
+            {/* FLAVOR SELECTOR — shown when product has flavors */}
+            {hasFlavors && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">
+                  Variante *
+                </label>
+                <select
+                  value={flavorId}
+                  onChange={(e) => setFlavorId(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                  required
+                >
+                  <option value="">Seleccioná una variante...</option>
+                  {selectedProduct!.flavors!.filter((f) => f.isActive).map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} {f.price ? `— ${formatPrice(f.price)}` : ""} (stock: {f.stockQuantity})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400">
+                  Si la variante tiene precio propio, se usará ese. Sino, el precio del producto base.
+                </p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -176,7 +223,7 @@ export default function CreateSaleDialog({
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Total Calculado</label>
                 <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-slate-900 font-bold">
-                  {formatPrice(calculatedTotal)}
+                  {productId ? formatPrice(calculatedTotal) : "—"}
                 </div>
               </div>
 
@@ -242,7 +289,7 @@ export default function CreateSaleDialog({
           <button
             type="submit"
             form="sale-form"
-            disabled={isSubmitting || !productId}
+            disabled={isSubmitting || !productId || (hasFlavors && !flavorId)}
             className="px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? "Guardando..." : "Guardar Venta"}

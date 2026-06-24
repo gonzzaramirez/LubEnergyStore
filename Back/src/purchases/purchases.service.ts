@@ -29,6 +29,15 @@ export class PurchasesService {
       0,
     );
 
+    // Validate each line has productId or flavorId (required for stock tracking)
+    for (const line of dto.lines) {
+      if (!line.productId && !line.flavorId) {
+        throw new BadRequestException(
+          `La línea "${line.productName}" debe estar vinculada a un producto o variante para actualizar el stock.`,
+        );
+      }
+    }
+
     return this.prisma.$transaction(async (tx) => {
       return tx.purchaseOrder.create({
         data: {

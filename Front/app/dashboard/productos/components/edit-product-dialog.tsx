@@ -284,14 +284,14 @@ export function EditProductDialog({
             <div className="space-y-2">
               <Label htmlFor="edit-defaultSupplierId">Proveedor por defecto</Label>
               <Select
-                value={watch("defaultSupplierId") || ""}
-                onValueChange={(value) => setValue("defaultSupplierId", value || undefined)}
+                value={watch("defaultSupplierId") ?? "none"}
+                onValueChange={(value) => setValue("defaultSupplierId", value === "none" ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar proveedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin proveedor</SelectItem>
+                  <SelectItem value="none">Sin proveedor</SelectItem>
                   {suppliers.filter((s) => s.isActive).map((supplier) => (
                     <SelectItem key={supplier.id} value={supplier.id}>
                       {supplier.name}

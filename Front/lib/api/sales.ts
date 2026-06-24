@@ -6,6 +6,7 @@ export type SalePaymentMethod = 'CASH' | 'TRANSFER';
 export interface Sale {
   id: string;
   productId: string;
+  flavorId?: string | null;
   quantity: number;
   totalAmount: number;
   paymentMethod: SalePaymentMethod;
@@ -17,10 +18,15 @@ export interface Sale {
     name: string;
     price: number;
   };
+  flavor?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface CreateSaleDto {
   productId: string;
+  flavorId?: string;
   quantity: number;
   paymentMethod: SalePaymentMethod;
   location: SaleLocation;

@@ -17,10 +17,91 @@ export class SalesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createSaleDto: CreateSaleDto) {
-    const { productId, quantity, paymentMethod, location, createdAt } =
+    const { productId, flavorId, quantity, paymentMethod, location, createdAt } =
       createSaleDto;
 
     return this.prisma.$transaction(async (tx) => {
+      if (flavorId) {
+        const flavor = await tx.productFlavor.findUnique({
+          where: { id: flavorId },
+          include: { product: { select: { name: true, price: true } } },
+        });
+
+        if (!flavor) {
+          throw new BadRequestException('Variante de producto no encontrada');
+        }
+
+        if (flavor.stockQuantity < quantity) {
+          throw new BadRequestException(
+            `Stock insuficiente para "${flavor.product.name} (${flavor.name})". Disponible: ${flavor.stockQuantity}, Solicitado: ${quantity}`,
+          );
+        }
+
+        const price = flavor.price ?? flavor.product.price;
+        const totalAmount = price * quantity;
+
+        // FIFO cost allocation for this flavor
+        let purchasePrice: number | null = null;
+        let unitSalePrice: number | null = null;
+        const fifoLines = await tx.purchaseOrderLine.findMany({
+          where: {
+            flavorId,
+            remaining: { gt: 0 },
+          },
+          orderBy: { purchaseOrder: { receivedAt: 'asc' } },
+        });
+
+        let toConsume = quantity;
+        let totalCost = 0;
+        let totalSaleValue = 0;
+        let hasSalePrice = false;
+        for (const line of fifoLines) {
+          if (toConsume <= 0) break;
+          const take = Math.min(line.remaining, toConsume);
+          totalCost += take * line.unitPurchasePrice;
+          if (line.unitSalePrice != null) {
+            totalSaleValue += take * line.unitSalePrice;
+            hasSalePrice = true;
+          }
+          toConsume -= take;
+          await tx.purchaseOrderLine.update({
+            where: { id: line.id },
+            data: { remaining: { decrement: take } },
+          });
+        }
+
+        if (toConsume === 0 && quantity > 0) {
+          purchasePrice = Math.round(totalCost / quantity);
+          if (hasSalePrice) {
+            unitSalePrice = Math.round(totalSaleValue / quantity);
+          }
+        }
+
+        await tx.productFlavor.update({
+          where: { id: flavorId },
+          data: { stockQuantity: { decrement: quantity } },
+        });
+
+        return tx.sale.create({
+          data: {
+            productId,
+            flavorId,
+            quantity,
+            totalAmount,
+            purchasePrice,
+            unitSalePrice,
+            paymentMethod,
+            location,
+            createdAt: createdAt ? new Date(createdAt) : undefined,
+          },
+          include: {
+            product: { select: { name: true, price: true } },
+            flavor: { select: { id: true, name: true } },
+          },
+        });
+      }
+
+      // No flavor — product-level sale (existing behavior)
       const product = await tx.product.findUnique({
         where: { id: productId },
         select: { stockQuantity: true, price: true, name: true },
@@ -38,7 +119,7 @@ export class SalesService {
 
       const totalAmount = product.price * quantity;
 
-      // FIFO cost allocation (R-FIFO-01 through R-FIFO-04)
+      // FIFO cost allocation
       let purchasePrice: number | null = null;
       let unitSalePrice: number | null = null;
       const fifoLines = await tx.purchaseOrderLine.findMany({
@@ -93,6 +174,7 @@ export class SalesService {
         },
         include: {
           product: { select: { name: true, price: true } },
+          flavor: { select: { id: true, name: true } },
         },
       });
     });
@@ -134,6 +216,7 @@ export class SalesService {
         orderBy: { createdAt: 'desc' },
         include: {
           product: { select: { name: true, price: true } },
+          flavor: { select: { id: true, name: true } },
         },
       }),
       this.prisma.sale.count({ where }),
@@ -165,6 +248,7 @@ export class SalesService {
             category: { select: { id: true, name: true } },
           },
         },
+        flavor: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'asc' },
     });

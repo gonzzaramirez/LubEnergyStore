@@ -88,9 +88,9 @@ export function ConfirmPaymentDialog({
                     <p className="font-mono font-semibold text-base break-all">
                       {customer.email}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Se enviará la confirmación a este email
-                    </p>
+                     <p className="text-xs text-muted-foreground mt-1">
+                       El cliente no recibe email automático de confirmación
+                     </p>
                   </div>
                 </div>
 
@@ -207,7 +207,7 @@ export function ConfirmPaymentDialog({
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Confirmar pago y enviar email
+                Confirmar pago
               </>
             )}
           </Button>

@@ -32,7 +32,7 @@ export function StockUpdateBar() {
       aria-atomic="true"
       className="flex h-6 w-full items-center justify-center border-t border-amber-500/30 bg-amber-400/30 px-4 sm:h-7"
     >
-      <p className="text-center text-xs font-bold leading-none text-amber-950 sm:text-sm">
+      <p className="text-center text-xs font-bold leading-none text-white sm:text-sm">
         Precios y stock actualizados
         {formattedDate ? (
           <>

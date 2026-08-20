@@ -29,42 +29,14 @@ export class OrdersService {
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      dni,
-      street,
-      apartment,
-      city,
-      province,
-      customerNotes,
-      items,
-      totalAmount,
-    } = createOrderDto;
+    const { customerNotes, items, totalAmount } = createOrderDto;
 
-    // Crear cliente invitado y pedido en una transacción
+    // Crear el pedido sin cliente invitado (guestCustomerId: null).
+    // El checkout simplificado no recolecta datos del comprador.
     const order = await this.prisma.$transaction(async (tx) => {
-      // 1. Crear o buscar cliente invitado
-      const guestCustomer = await tx.guestCustomer.create({
-        data: {
-          firstName,
-          lastName,
-          email,
-          phone,
-          dni,
-          street,
-          apartment,
-          city,
-          province,
-        },
-      });
-
-      // 2. Crear el pedido
       const newOrder = await tx.order.create({
         data: {
-          guestCustomerId: guestCustomer.id,
+          guestCustomerId: null,
           totalAmount,
           customerNotes,
           status: OrderStatus.PENDING,
@@ -127,21 +99,22 @@ export class OrdersService {
 
     try {
       const adminEmail = process.env.ADMIN_ORDER_EMAIL?.trim();
-      const gc = order.guestCustomer;
-      if (adminEmail && process.env.RESEND_API_KEY && gc) {
+      if (adminEmail && process.env.RESEND_API_KEY) {
+        // El checkout simplificado no crea cliente invitado, así que se
+        // envía la notificación con datos de placeholders.
         await this.emailService.sendAdminNewOrderNotification({
           orderId: order.id,
           createdAt: order.createdAt,
           customer: {
-            firstName: gc.firstName,
-            lastName: gc.lastName,
-            email: gc.email,
-            phone: gc.phone,
-            dni: gc.dni,
-            street: gc.street,
-            apartment: gc.apartment || undefined,
-            city: gc.city,
-            province: gc.province,
+            firstName: 'Cliente',
+            lastName: 'WhatsApp',
+            email: '',
+            phone: '',
+            dni: '',
+            street: '',
+            apartment: undefined,
+            city: '',
+            province: '',
           },
           items: order.items.map((item) => ({
             productName: item.flavorName
@@ -341,39 +314,9 @@ export class OrdersService {
       });
     }
 
-    // Enviar email de confirmación cuando se confirma el pago
-    if (
-      updateDto.status === OrderStatusUpdate.CONFIRMED &&
-      updatedOrder.guestCustomer
-    ) {
-      const customer = updatedOrder.guestCustomer;
-      try {
-        await this.emailService.sendOrderConfirmation({
-          orderId: updatedOrder.id,
-          customer: {
-            firstName: customer.firstName,
-            lastName: customer.lastName,
-            email: customer.email,
-            phone: customer.phone,
-            dni: customer.dni,
-            street: customer.street,
-            apartment: customer.apartment || undefined,
-            city: customer.city,
-            province: customer.province,
-          },
-          items: updatedOrder.items.map((item) => ({
-            productName: item.productName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
-          totalAmount: updatedOrder.totalAmount,
-          trackingUrl: this.getTrackingUrl(updatedOrder.id),
-        });
-      } catch (error) {
-        // Log el error pero no fallar la confirmación del pedido
-        console.error('Error al enviar email de confirmación:', error);
-      }
-    }
+    // Nota: el checkout simplificado no envía email de confirmación al
+    // cliente (sendOrderConfirmation) por decisión de negocio. El método se
+    // conserva en email.service para reutilización futura.
 
     return updatedOrder;
   }
@@ -401,33 +344,9 @@ export class OrdersService {
       },
     });
 
-    // Enviar email con código de seguimiento
-    if (updatedOrder.guestCustomer) {
-      const customer = updatedOrder.guestCustomer;
-      await this.emailService.sendTrackingUpdate({
-        orderId: updatedOrder.id,
-        customer: {
-          firstName: customer.firstName,
-          lastName: customer.lastName,
-          email: customer.email,
-          phone: customer.phone,
-          dni: customer.dni,
-          street: customer.street,
-          apartment: customer.apartment || undefined,
-          city: customer.city,
-          province: customer.province,
-        },
-        items: updatedOrder.items.map((item) => ({
-          productName: item.productName,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-        })),
-        totalAmount: updatedOrder.totalAmount,
-        trackingCode: updateDto.trackingCode,
-        courierName: updateDto.courierName,
-        trackingUrl: this.getTrackingUrl(updatedOrder.id),
-      });
-    }
+    // Nota: el checkout simplificado no envía email de seguimiento al cliente
+    // (sendTrackingUpdate) por decisión de negocio. El método se conserva en
+    // email.service para reutilización futura.
 
     return updatedOrder;
   }

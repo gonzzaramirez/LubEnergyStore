@@ -41,36 +41,36 @@ export class OrderItemDto {
 }
 
 export class CreateOrderDto {
-  // Datos del cliente
+  // Datos del cliente (opcionales: el checkout simplificado no los solicita)
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  firstName: string;
+  firstName?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  lastName: string;
+  lastName?: string;
 
   @IsEmail()
-  @IsNotEmpty()
-  email: string;
+  @IsOptional()
+  email?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(20)
-  phone: string;
+  phone?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(15)
-  dni: string;
+  dni?: string;
 
   // Dirección
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(200)
-  street: string;
+  street?: string;
 
   @IsString()
   @IsOptional()
@@ -78,14 +78,14 @@ export class CreateOrderDto {
   apartment?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  city: string;
+  city?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  province: string;
+  province?: string;
 
   // Notas del cliente
   @IsString()

@@ -33,8 +33,8 @@ export function Header() {
       e.preventDefault();
       const element = document.getElementById(hash);
       if (element) {
-        // Header total height: h-14(56) + subnavbar h-7(28)=84 mobile, h-16(64)+h-8(32)=96 desktop
-        const headerOffset = 96;
+        // Header total height: h-14(56) + subnavbar h-6(24)=80 mobile, h-16(64)+h-7(28)=92 desktop
+        const headerOffset = 92;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition =
           elementPosition + window.pageYOffset - headerOffset;
@@ -176,7 +176,7 @@ export function Header() {
         className="invisible pointer-events-none select-none"
       >
         <div className="h-14 sm:h-16" />
-        <div className="h-7 sm:h-8" />
+        <div className="h-6 sm:h-7" />
       </div>
     </>
   );

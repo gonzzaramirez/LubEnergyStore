@@ -30,7 +30,7 @@ export function StockUpdateBar() {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="flex h-7 w-full items-center justify-center border-t border-amber-200 bg-amber-100 px-4 sm:h-8"
+      className="flex h-6 w-full items-center justify-center border-t border-amber-500/30 bg-amber-400/30 px-4 sm:h-7"
     >
       <p className="text-center text-xs font-bold leading-none text-amber-950 sm:text-sm">
         Precios y stock actualizados
@@ -48,7 +48,7 @@ export function StockUpdateBar() {
   );
 }
 
-// Lightweight spacer height reference — keep in sync with StockUpdateBar's h-7 sm:h-8
+// Lightweight spacer height reference — keep in sync with StockUpdateBar's h-6 sm:h-7
 export function StockUpdateBarSpacer() {
-  return <div aria-hidden="true" className="h-7 sm:h-8" />;
+  return <div aria-hidden="true" className="h-6 sm:h-7" />;
 }

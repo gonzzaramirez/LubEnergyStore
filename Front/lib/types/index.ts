@@ -203,15 +203,15 @@ export interface Order {
 }
 
 export interface CreateOrderDto {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dni: string;
-  street: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  dni?: string;
+  street?: string;
   apartment?: string;
-  city: string;
-  province: string;
+  city?: string;
+  province?: string;
   customerNotes?: string;
   items: {
     productId: string;

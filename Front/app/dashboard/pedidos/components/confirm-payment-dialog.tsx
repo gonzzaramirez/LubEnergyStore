@@ -21,7 +21,6 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ConfirmPaymentDialogProps {
   order: Order | null;
@@ -51,23 +50,14 @@ export function ConfirmPaymentDialog({
             Verificar datos antes de confirmar
           </DialogTitle>
           <DialogDescription>
-            Por favor, verifica que los datos del pedido sean correctos antes de
-            confirmar el pago. Se enviará un email de confirmación al cliente.
+            Verifica que los datos del pedido sean correctos antes de confirmar
+            el pago. Al confirmar se actualiza el estado del pedido y se
+            notifica al equipo de ventas (el cliente no recibe email
+            automático).
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Alerta importante sobre el email */}
-          <Alert className="border-yellow-500 bg-yellow-50">
-            <Mail className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-900">
-              <strong>Importante:</strong> Se enviará un email de confirmación a{" "}
-              <strong className="font-mono">{customer?.email}</strong>. Asegúrate
-              de que este email sea correcto, ya que el cliente lo usará para
-              ver el estado de su pedido y recibir el código de seguimiento.
-            </AlertDescription>
-          </Alert>
-
           <Separator />
 
           {/* Información del pedido */}

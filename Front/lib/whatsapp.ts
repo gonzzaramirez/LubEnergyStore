@@ -1,63 +1,21 @@
 import type { CartItem } from "@/context/cart-context"
 import { formatPrice } from "./products"
 
-interface CustomerData {
-  name: string
-  address: string
-  notes?: string
-  email?: string
-  phone?: string
-  dni?: string
-  orderId?: string
-  discountCode?: string
-  discountPercent?: number
-}
-
-export function generateWhatsAppMessage(items: CartItem[], total: number, customer: CustomerData): string {
+// Mensaje mínimo de WhatsApp: solo líneas de producto (título + precio
+// unitario) y el total. Sin ID, sin link, sin datos del comprador, sin notas.
+export function generateWhatsAppMessage(
+  items: CartItem[],
+  total: number,
+): string {
   const productLines = items
-    .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.price)}`)
+    .map((item) => `${item.name} - ${formatPrice(item.price)}`)
     .join("\n")
 
-  let message = `*PEDIDO LUB ENERGY*`
+  const message = `*PEDIDO LUB ENERGY*
 
-  if (customer.orderId) {
-    message += ` #${customer.orderId}`
-  }
+${productLines}
 
-  message += `
-
-${productLines}`
-
-  if (customer.discountCode && customer.discountPercent) {
-    message += `
-
-Descuento: ${customer.discountCode} (-${customer.discountPercent}%)`
-  }
-
-  message += `
-
-*Total: ${formatPrice(total)}*
-
----
-*${customer.name}*`
-
-  if (customer.phone) {
-    message += ` | ${customer.phone}`
-  }
-
-  if (customer.dni) {
-    message += `
-DNI: ${customer.dni}`
-  }
-
-  message += `
-${customer.address}`
-
-  if (customer.notes) {
-    message += `
-
-_${customer.notes}_`
-  }
+*Total: ${formatPrice(total)}*`
 
   return encodeURIComponent(message.trim())
 }

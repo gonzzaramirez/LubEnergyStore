@@ -92,7 +92,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const isOutOfStock = currentStock === 0;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-6 sm:px-6 sm:pt-24 sm:pb-8 md:pt-28 md:pb-12 lg:pb-16">
+    <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-6 sm:px-6 sm:pt-8 sm:pb-8 md:pt-12 md:pb-12 lg:pb-16">
       {/* Back Button */}
       <Link href="/productos">
         <Button variant="ghost" className="mb-4 cursor-pointer sm:mb-6">

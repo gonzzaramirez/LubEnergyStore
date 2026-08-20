@@ -80,7 +80,7 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="relative flex min-h-[85vh] items-center justify-center overflow-hidden pt-16 sm:min-h-[90vh] sm:pt-20"
+      className="relative flex min-h-[85vh] items-center justify-center overflow-hidden pt-6 sm:min-h-[90vh] sm:pt-8"
       aria-label="Bienvenido a LUB ENERGY - Suplementos Deportivos"
     >
       {/* Background Effects */}

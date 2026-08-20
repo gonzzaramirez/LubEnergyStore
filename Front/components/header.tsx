@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { cn } from "@/lib/utils";
+import { StockUpdateBar } from "@/components/stock-update-bar";
 
 export function Header() {
   const { totalItems, setIsOpen, justAdded } = useCart();
@@ -32,7 +33,8 @@ export function Header() {
       e.preventDefault();
       const element = document.getElementById(hash);
       if (element) {
-        const headerOffset = 80;
+        // Header total height: h-14(56) + subnavbar h-7(28)=84 mobile, h-16(64)+h-8(32)=96 desktop
+        const headerOffset = 96;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition =
           elementPosition + window.pageYOffset - headerOffset;
@@ -46,11 +48,12 @@ export function Header() {
   };
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl"
-      role="banner"
-    >
-      <div className="relative flex h-14 items-center justify-between px-3 sm:h-16 sm:px-4 md:px-6">
+    <>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl"
+        role="banner"
+      >
+        <div className="relative flex h-14 items-center justify-between px-3 sm:h-16 sm:px-4 md:px-6">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -131,9 +134,11 @@ export function Header() {
         </button>
       </div>
 
-      {/* Mobile Menu - Simplificado */}
-      {isMobileMenuOpen && (
-        <div className="absolute left-0 right-0 top-14 border-b border-border bg-background p-4 shadow-lg md:hidden">
+        <StockUpdateBar />
+
+        {/* Mobile Menu - Simplificado - positioned below full header (nav + subnavbar) */}
+        {isMobileMenuOpen && (
+          <div className="absolute left-0 right-0 top-full border-b border-border bg-background p-4 shadow-lg md:hidden">
           <nav className="flex flex-col gap-4">
             <Link
               href="/productos"
@@ -163,7 +168,16 @@ export function Header() {
             </a>
           </nav>
         </div>
-      )}
-    </header>
+        )}
+      </header>
+      {/* Spacer to offset fixed header height (nav + subnavbar) so content is not hidden */}
+      <div
+        aria-hidden="true"
+        className="invisible pointer-events-none select-none"
+      >
+        <div className="h-14 sm:h-16" />
+        <div className="h-7 sm:h-8" />
+      </div>
+    </>
   );
 }

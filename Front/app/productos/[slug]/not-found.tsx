@@ -8,7 +8,7 @@ export default function ProductNotFound() {
   return (
     <main id="main-content" className="min-h-screen bg-background">
       <Header />
-      <div className="mx-auto w-full max-w-7xl px-4 pt-32 pb-20 text-center sm:px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-12 pb-20 text-center sm:px-6 sm:pt-16">
         <div className="flex flex-col items-center gap-6">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
             <PackageX className="h-12 w-12 text-muted-foreground" aria-hidden="true" />

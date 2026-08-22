@@ -18,6 +18,26 @@ export function Footer() {
           </Link>
 
           {/* Navigation Links */}
+          <nav
+            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm"
+            aria-label="Enlaces del sitio"
+          >
+            {[
+              { href: "/productos", label: "Productos" },
+              { href: "/about", label: "Nosotros" },
+              { href: "/contact", label: "Contacto" },
+              { href: "/privacy", label: "Privacidad" },
+              { href: "/docs", label: "Recursos" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
           {/* Social Icons */}
           <div

@@ -3,6 +3,10 @@ import { Header } from "@/components/header";
 import { ProductGrid } from "./components/product-grid";
 import { CartSidebar } from "@/components/cart-sidebar";
 import { Footer } from "@/components/footer";
+import { getCatalogProducts, getCatalogCategories } from "@/lib/catalog";
+
+// SSR por pedido: el build no depende de la API y los precios son actuales.
+export const dynamic = "force-dynamic";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lubenergy.com.ar';
 
@@ -56,7 +60,13 @@ const catalogJsonLd = {
   },
 };
 
-export default function ProductosPage() {
+export default async function ProductosPage() {
+  // SSR: catálogo completo en el HTML inicial (sin JS requerido).
+  const [products, categories] = await Promise.all([
+    getCatalogProducts(),
+    getCatalogCategories(),
+  ]);
+
   return (
     <>
       <script
@@ -66,7 +76,13 @@ export default function ProductosPage() {
       <main id="main-content" className="min-h-screen">
         <Header />
         <div className="">
-          <ProductGrid featuredOnly={false} showFilters={true} showTitle={true} />
+          <ProductGrid
+            featuredOnly={false}
+            showFilters={true}
+            showTitle={true}
+            initialProducts={products}
+            initialCategories={categories}
+          />
         </div>
         <CartSidebar />
         <Footer />

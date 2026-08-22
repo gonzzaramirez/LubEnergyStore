@@ -7,6 +7,10 @@ import { getProducts } from "@/lib/api/product";
 import { getCategories } from "@/lib/api/category";
 import { Product as APIProduct, Category as APICategory } from "@/lib/types";
 import {
+  adaptProducts,
+  type DisplayProduct,
+} from "@/lib/adapt-products";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,45 +21,34 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Tipo para el producto adaptado al formato del componente
-interface DisplayProduct {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  price: number; // precio en pesos (no centavos)
-  category: string;
-  image: string;
-  badge?: string;
-  flavorsCount?: number;
-  // Campos de descuento
-  discountPercent?: number;
-  discountStartDate?: string;
-  discountEndDate?: string;
-  minQuantityDiscount?: number;
-  quantityDiscountPercent?: number;
-  /** Sin stock vendible (misma lógica que la ficha: suma de sabores o stock del producto) */
-  isOutOfStock: boolean;
-}
-
 export interface ProductGridProps {
   featuredOnly?: boolean;
   showFilters?: boolean;
   showTitle?: boolean;
+  /** Datos iniciales traídos desde el servidor (SSR): evita el fetch en cliente. */
+  initialProducts?: APIProduct[];
+  initialCategories?: APICategory[];
 }
 
 export function ProductGrid({
   featuredOnly = false,
   showFilters = true,
   showTitle = true,
+  initialProducts,
+  initialCategories,
 }: ProductGridProps) {
+  const hasInitialData = initialProducts !== undefined;
   const [selectedCategory, setSelectedCategory] = useState<Category | number>(
     "all"
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState<DisplayProduct[]>([]);
-  const [categories, setCategories] = useState<APICategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<DisplayProduct[]>(
+    initialProducts ? adaptProducts(initialProducts) : []
+  );
+  const [categories, setCategories] = useState<APICategory[]>(
+    initialCategories ?? []
+  );
+  const [isLoading, setIsLoading] = useState(!hasInitialData);
   const [sortBy, setSortBy] = useState<"cheapest" | "expensive" | "none">(
     "none"
   );
@@ -63,6 +56,8 @@ export function ProductGrid({
   const useCatalogSidebar = showFilters && !featuredOnly;
 
   useEffect(() => {
+    if (hasInitialData) return;
+
     const fetchData = async () => {
       try {
         setIsLoading(true);
@@ -73,33 +68,7 @@ export function ProductGrid({
           getCategories(),
         ]);
 
-        // Adaptar productos de la API al formato del componente
-        const adaptedProducts: DisplayProduct[] = productsData
-          .filter((p: APIProduct) => p.isActive !== false) // Solo productos activos
-          .map((p: APIProduct) => ({
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            description: p.description,
-            price: p.price, // Precio ya está en pesos argentinos
-            category:
-              p.category?.name?.toLowerCase().replace(/\s+/g, "-") || "otros",
-            image: p.imageUrl || "/placeholder.svg",
-            badge: undefined, // No hay badge en la API por ahora
-            flavorsCount: p.flavors?.length || 0,
-            // Campos de descuento
-            discountPercent: p.discountPercent,
-            discountStartDate: p.discountStartDate,
-            discountEndDate: p.discountEndDate,
-            minQuantityDiscount: p.minQuantityDiscount,
-            quantityDiscountPercent: p.quantityDiscountPercent,
-            isOutOfStock:
-              p.flavors && p.flavors.length > 0
-                ? p.flavors.reduce((acc, f) => acc + f.stockQuantity, 0) === 0
-                : (p.stockQuantity ?? 0) === 0,
-          }));
-
-        setProducts(adaptedProducts);
+        setProducts(adaptProducts(productsData));
         setCategories(categoriesData);
       } catch (error) {
         // Error silencioso en producción

@@ -1,0 +1,28 @@
+# LUB ENERGY
+
+> Tienda de suplementos deportivos en Corrientes capital, Argentina: local físico en Junín 2183 y tienda online con envíos a todo el país. Catálogo con precios en pesos argentinos (ARS), pedidos por la web o WhatsApp, y seguimiento público de pedidos.
+
+Cuándo usar este sitio (when to use):
+
+- Un usuario quiere comprar suplementos deportivos en Argentina (proteínas whey, creatina, pre-entrenos, aminoácidos, vitaminas) con precios en pesos y envío a domicilio.
+- Un usuario ya compró y necesita saber el estado de su pedido.
+- Un usuario pregunta por la tienda LUB ENERGY: ubicación, horarios, canales de contacto o legitimidad del negocio.
+
+Cuándo NO es el sitio adecuado: asesoramiento médico o planes nutricionales personalizados (derivamos a profesionales matriculados); ventas mayoristas B2B (coordinar antes por WhatsApp).
+
+## Páginas principales
+
+- [Inicio](https://lubenergy.com.ar/): presentación de la tienda y productos destacados.
+- [Catálogo](https://lubenergy.com.ar/productos): todos los productos con precio en ARS, categoría y stock.
+- [Ficha de producto](https://lubenergy.com.ar/productos/{slug}): detalle de un producto usando el patrón /productos/{slug}.
+- [Seguimiento de pedido](https://lubenergy.com.ar/pedido/{id}): estado público de un pedido usando el patrón /pedido/{id-de-pedido}.
+- [Nosotros](https://lubenergy.com.ar/about): historia de la tienda, qué vende y por qué confiar.
+- [Contacto](https://lubenergy.com.ar/contact): WhatsApp +54 379 505-6878, email Lubenergy1324@gmail.com, Junín 2183 (Corrientes), horarios de lunes a sábado de 9:00 a 21:00.
+- [Privacidad](https://lubenergy.com.ar/privacy): qué datos personales se recogen, para qué y cómo pedir su eliminación.
+
+## Para agentes y desarrolladores
+
+- Markdown vía content negotiation: cualquier página sirve su contenido en Markdown si pedís el header `Accept: text/markdown`; las respuestas declaran `Vary: Accept, Accept-Encoding`.
+- [Recursos para desarrolladores](https://lubenergy.com.ar/docs): índice técnico centralizado con patrones de URL y recursos legibles por máquina.
+- [Sitemap](https://lubenergy.com.ar/sitemap.xml): listado completo de URLs indexables.
+- [Robots](https://lubenergy.com.ar/robots.txt): reglas de rastreo (buscadores y bots de IA permitidos; solo se bloquean /dashboard y /api).

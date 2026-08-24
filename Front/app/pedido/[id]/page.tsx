@@ -13,6 +13,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+
+// Public order tracking shows customer data: keep it out of search indexes.
+export const metadata: Metadata = {
+  title: "Seguimiento de pedido",
+  robots: { index: false, follow: false },
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;

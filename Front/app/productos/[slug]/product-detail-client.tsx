@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Minus, ShoppingBag, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { slugify } from "@/lib/slug";
 
 interface ProductDetailClientProps {
   product: Product;
@@ -117,12 +118,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
         {/* Content Section */}
         <div className="flex flex-col space-y-4 sm:space-y-6">
-          {/* Category Badge */}
+          {/* Category Badge - links to the category hub */}
           {product.category && (
             <div>
-              <span className="inline-block rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary sm:px-4 sm:py-2 sm:text-sm">
+              <Link
+                href={`/productos/categoria/${slugify(product.category.name)}`}
+                className="inline-block rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 sm:px-4 sm:py-2 sm:text-sm"
+              >
                 {product.category.name}
-              </span>
+              </Link>
             </div>
           )}
 

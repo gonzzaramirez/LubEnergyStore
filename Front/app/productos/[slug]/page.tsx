@@ -49,7 +49,8 @@ export async function generateMetadata({
   }).format(product.price);
 
   return {
-    title: `${product.name} | ${categoryName}`,
+    // Plain title: the root template appends "| LUB ENERGY" (avoids double branding).
+    title: product.name,
     description: `${product.description.slice(0, 155)}... Precio: ${priceFormatted}. Envíos a toda Argentina.`,
     openGraph: {
       title: `${product.name} | LUB ENERGY`,
@@ -68,6 +69,13 @@ export async function generateMetadata({
         : [],
       locale: "es_AR",
       type: "website",
+    },
+    // Commerce signals for social scrapers/crawlers. Note: Next 16 only
+    // accepts custom meta pairs at the top level (openGraph.other was
+    // removed from its types), rendering <meta name="product:price:*">.
+    other: {
+      "product:price:amount": String(product.price),
+      "product:price:currency": "ARS",
     },
     twitter: {
       card: "summary_large_image",

@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     title: "LUB ENERGY | Suplementos Deportivos en Corrientes",
     description:
       "Tienda de suplementos deportivos en Corrientes capital. Local físico en Junín 2183. Proteínas, creatinas, pre-entrenos y más.",
-    images: ["/LUB ENERGY_NG_.png"],
+    images: ["/lub-energy-ng.png"],
   },
   robots: {
     index: true,
@@ -102,9 +102,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
   category: "ecommerce",
 };
 
@@ -115,7 +112,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-// JSON-LD Schema para LocalBusiness + WebSite + FAQ
+// Site-wide JSON-LD schema: WebSite + LocalBusiness + Organization.
+// FAQPage lives on the home page, next to the visible FAQ section.
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -215,60 +213,6 @@ const jsonLd = {
         "https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
       ],
     },
-    {
-      "@type": "FAQPage",
-      "@id": `${BASE_URL}/#faq`,
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "¿Dónde está ubicado LUB ENERGY?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "LUB ENERGY está ubicado en Junín 2183, Corrientes capital, provincia de Corrientes, Argentina. Podés encontrarnos en Google Maps: https://maps.app.goo.gl/t9xvJ8Hc1tGEebCu7",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "¿Venden suplementos deportivos en Corrientes?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Sí. LUB ENERGY es la tienda de suplementos deportivos con local físico propio en Corrientes capital. Vendemos proteínas, creatinas, pre-entrenos, aminoácidos, vitaminas y mucho más de las mejores marcas.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "¿Hacen envíos a toda Argentina?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Sí, LUB ENERGY realiza envíos a todo el país. Podés comprar desde cualquier provincia y recibir tu pedido en la puerta de tu casa.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "¿Cuáles son los horarios de atención del local?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "El local de LUB ENERGY atiende de lunes a sábado de 9:00 a 21:00 hs. También podés contactarnos por WhatsApp al +54 379 505-6878 o escribirnos por Instagram @lub_energy.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "¿Qué suplementos vende LUB ENERGY en Corrientes?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "LUB ENERGY vende proteínas whey, creatina monohidrato, pre-entrenos, aminoácidos BCAA, quemadores de grasa, vitaminas y suplementos para rendimiento deportivo. Todos los productos son originales de marcas reconocidas.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "¿Cómo puedo contactar a LUB ENERGY?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Podés contactar a LUB ENERGY por WhatsApp al +54 379 505-6878, por email a Lubenergy1324@gmail.com, o visitarnos en nuestro local en Junín 2183, Corrientes capital.",
-          },
-        },
-      ],
-    },
   ],
 };
 
@@ -291,24 +235,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link rel="manifest" href="/site.webmanifest" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        {/* Favicons are emitted by metadata.icons; manual duplicates removed. */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"

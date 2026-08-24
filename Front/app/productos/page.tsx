@@ -1,9 +1,11 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { ProductGrid } from "./components/product-grid";
 import { CartSidebar } from "@/components/cart-sidebar";
 import { Footer } from "@/components/footer";
 import { getCatalogProducts, getCatalogCategories } from "@/lib/catalog";
+import { slugify } from "@/lib/slug";
 
 // SSR por pedido: el build no depende de la API y los precios son actuales.
 export const dynamic = "force-dynamic";
@@ -75,6 +77,25 @@ export default async function ProductosPage() {
       />
       <main id="main-content" className="min-h-screen">
         <Header />
+        {/* Crawlable category hub links (server-rendered, independent of the client filter). */}
+        {categories.length > 0 && (
+          <nav
+            aria-label="Categorías del catálogo"
+            className="mx-auto flex w-full max-w-7xl flex-wrap justify-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8"
+          >
+            {categories
+              .filter((category) => category.isActive !== false)
+              .map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/productos/categoria/${slugify(category.name)}`}
+                  className="rounded-full border border-border bg-secondary px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                >
+                  {category.name}
+                </Link>
+              ))}
+          </nav>
+        )}
         <div className="">
           <ProductGrid
             featuredOnly={false}

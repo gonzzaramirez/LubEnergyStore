@@ -40,6 +40,26 @@ const nextConfig = {
           },
         ],
       },
+      // Private areas: noindex via HTTP header (defense in depth on top of
+      // the robots metadata set in the pages themselves)
+      {
+        source: '/dashboard/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      },
+      {
+        source: '/pedido/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      },
       // Resto (páginas): seguridad + stale-while-revalidate + negociación
       {
         source: '/:path*',
